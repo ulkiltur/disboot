@@ -1,43 +1,46 @@
-// server.js
-import 'dotenv/config';
 import { Client, GatewayIntentBits, Collection } from 'discord.js';
-import fs from 'fs';
-import path from 'path';
+import { ping, say } from './commands.js'; // import your commands
 
-// Create client
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+// Create the Discord client
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+});
 
-// Load commands
+// Register commands
 client.commands = new Collection();
-const commandsPath = path.join('./commands.js'); // we'll import single file
-const commands = await import(commandsPath);
+const commands = { ping, say };
 for (const [name, command] of Object.entries(commands)) {
-    client.commands.set(name, command);
+  client.commands.set(name, command);
 }
 
-// Event: bot ready
+// Bot ready
 client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Logged in as ${client.user.tag}!`);
 });
 
-// Event: message create
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-    if (!message.content.startsWith('!')) return; // prefix
+// Listen to messages
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  if (!message.content.startsWith('!')) return;
 
-    const args = message.content.slice(1).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
+  const args = message.content.slice(1).trim().split(/ +/);
+  const commandName = args.shift().toLowerCase();
 
-    const command = client.commands.get(commandName);
-    if (!command) return;
+  const command = client.commands.get(commandName);
+  if (!command) return;
 
-    try {
-        await command.execute(message, args);
-    } catch (error) {
-        console.error(error);
-        message.reply('There was an error executing that command!');
-    }
+  try {
+    await command.execute(message, args);
+  } catch (error) {
+    console.error(error);
+    message.reply('There was an error executing that command!');
+  }
 });
 
-// Login
-client.login(process.env.TOKEN);
+// Login using GitHub Secret (environment variable)
+const token = process.env.TOKEN; // GitHub Actions will inject this
+if (!token) {
+  console.error('Error: TOKEN not found in environment variables!');
+  process.exit(1);
+}
+client.login(token);
