@@ -1,16 +1,18 @@
+// server.js
 import 'dotenv/config';
 import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
 import { ping, say } from './commands.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Register commands collection
+// Register commands in a collection
 client.commands = new Collection();
 const commands = [ping, say];
 commands.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 
 // Register slash commands with Discord
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
@@ -26,7 +28,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
-// Handle interactions
+// Handle slash command interactions
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 
@@ -41,8 +43,10 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
+// Bot ready
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
+// Login
 client.login(process.env.TOKEN);
