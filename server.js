@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
-import { register } from './commands/register.js';
 
 // -------------------------------
 // Fake port server for Render
