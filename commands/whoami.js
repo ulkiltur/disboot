@@ -11,12 +11,12 @@ export const whoami = {
 
     if (!row) {
       await interaction.reply({
-        content:"❌ You haven't registered an in-game name yet. Use /register <name>.",
+        content:"❌ Aún no te has registrado. Usa /registro <nombre>.",
         ephemeral: true
       });
     } else {
       await interaction.reply({
-        content:`✅ Your registered in-game name is **${row.ingame_name}**.`,
+        content:`✅ Tu nombre en el juego es **${row.ingame_name}**.`,
         ephemeral: true
       });
     }
