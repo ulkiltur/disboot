@@ -2,7 +2,8 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { SlashCommandBuilder } from "discord.js";
 
-export const data = new SlashCommandBuilder()
+export default{
+  data: new SlashCommandBuilder()
   .setName("registro")
   .setDescription("Registrar o actualizar")
   .addStringOption(option =>
@@ -10,9 +11,9 @@ export const data = new SlashCommandBuilder()
       .setName("name")
       .setDescription("Your in-game name")
       .setRequired(true)
-  );
+  ),
 
-export async function execute(interaction) {
+async execute(interaction) {
   const ingameName = interaction.options.getString("name").trim();
   const guild = interaction.guild;
   const member = await guild.members.fetch(interaction.user.id);
