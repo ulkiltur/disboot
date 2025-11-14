@@ -10,19 +10,28 @@ export default {
     .setDescription("Registrar o actualizar")
     .addStringOption(option =>
       option
-        .setName("nombre")
-        .setDescription("Nombre del personaje en WWM")
-        .setRequired(true)
+        .setName("name")
+        .setDescription("Tu nombre en el juego")
+        .setRequired(true) // ✅ required, ensures getString never returns null
     ),
 
   async execute(interaction) {
-    const ingameName = interaction.options.getString("name").trim();
+    // Get the name safely
+    const ingameName = interaction.options.getString("name");
+    if (!ingameName) {
+      return interaction.reply({
+        content: "❌ Debes ingresar un nombre válido.",
+        flags: 64, // EPHEMERAL
+      });
+    }
+
+    const name = ingameName.trim();
     const guild = interaction.guild;
     const member = await guild.members.fetch(interaction.user.id);
 
     const db = await open({
       filename: "./database/users.sqlite",
-      driver: sqlite.Database
+      driver: sqlite.Database,
     });
 
     await db.exec(`
@@ -34,13 +43,13 @@ export default {
 
     const existingName = await db.get(
       "SELECT discord_id FROM users WHERE LOWER(ingame_name) = LOWER(?)",
-      ingameName
+      name
     );
 
     if (existingName && existingName.discord_id !== interaction.user.id) {
       return interaction.reply({
-        content: `❌ El nombre **${ingameName}** ya está registrado.`,
-        ephemeral: true
+        content: `❌ El nombre **${name}** ya está registrado.`,
+        flags: 64,
       });
     }
 
@@ -52,29 +61,37 @@ export default {
     if (userRow) {
       await db.run(
         "UPDATE users SET ingame_name = ? WHERE discord_id = ?",
-        ingameName,
+        name,
         interaction.user.id
       );
 
-      try { await member.setNickname(ingameName); } catch {}
+      try {
+        await member.setNickname(name);
+      } catch (err) {
+        console.log("Nickname change failed:", err);
+      }
 
       return interaction.reply({
-        content: `🔄 Se ha actualizado tu nombre a **${ingameName}**!`,
-        ephemeral: true
+        content: `🔄 Se ha actualizado tu nombre a **${name}**!`,
+        flags: 64,
       });
     }
 
     await db.run(
       "INSERT INTO users (discord_id, ingame_name) VALUES (?, ?)",
       interaction.user.id,
-      ingameName
+      name
     );
 
-    try { await member.setNickname(ingameName); } catch {}
+    try {
+      await member.setNickname(name);
+    } catch (err) {
+      console.log("Nickname change failed:", err);
+    }
 
     return interaction.reply({
-      content: `✅ Registrado exitosamente: **${ingameName}**!`,
-      ephemeral: true
+      content: `✅ Registrado exitosamente: **${name}**!`,
+      flags: 64,
     });
-  }
+  },
 };
