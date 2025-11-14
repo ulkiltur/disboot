@@ -1,9 +1,13 @@
-// server.js
 import 'dotenv/config';
-import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
-import { ping, say } from './commands.js';
 import express from 'express';
+import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
+import { ping } from './commands/ping.js';
+import { say } from './commands/say.js';
+import { register } from './commands/register.js';
 
+// -------------------------------
+// Fake port server for Render
+// -------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,35 +19,32 @@ app.listen(PORT, () => {
   console.log(`Render keep-alive server running on port ${PORT}`);
 });
 
-
+// -------------------------------
+// Discord Bot Setup
+// -------------------------------
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-
-
-// Register commands in a collection
 client.commands = new Collection();
-const commands = [ping, say];
+const commands = [ping, say, register];
 commands.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 
-// Register slash commands with Discord
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
   try {
-    console.log('Started refreshing application (/) commands.');
+    console.log('Refreshing slash commands…');
 
     await rest.put(
       Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands.map(c => c.data) }
     );
 
-    console.log('Successfully reloaded application (/) commands.');
+    console.log('Slash commands registered.');
   } catch (error) {
     console.error(error);
   }
 })();
 
-// Handle slash command interactions
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 
@@ -52,16 +53,17 @@ client.on('interactionCreate', async interaction => {
 
   try {
     await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: 'There was an error executing that command!', ephemeral: true });
+  } catch (err) {
+    console.error(err);
+    await interaction.reply({
+      content: 'Error executing command',
+      ephemeral: true,
+    });
   }
 });
 
-// Bot ready
 client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Logged in as ${client.user.tag}`);
 });
 
-// Login
 client.login(process.env.TOKEN);
