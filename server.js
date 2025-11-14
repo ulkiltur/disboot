@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
-import { ping } from './commands/ping.js';
-import { say } from './commands/say.js';
 import { register } from './commands/register.js';
 
 // -------------------------------
@@ -25,7 +23,7 @@ app.listen(PORT, () => {
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
-const commands = [ping, say, register];
+const commands = [register];
 commands.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
