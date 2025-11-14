@@ -1,50 +1,93 @@
-import db from '../database/db.js';
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import { SlashCommandBuilder } from "discord.js";
 
-export const register = {
-  data: {
-    name: 'registro',
-    description: 'Link your Discord account to your in-game name',
-    options: [
-      {
-        name: 'name',
-        type: 3, // STRING
-        description: 'Your in-game name',
-        required: true,
-      },
-    ],
-  },
-  async execute(interaction) {
-    const discordId = interaction.user.id;
-    const ingameName = interaction.options.getString('name').trim();
+export const data = new SlashCommandBuilder()
+  .setName("registro")
+  .setDescription("Registrar o actualizar")
+  .addStringOption(option =>
+    option
+      .setName("name")
+      .setDescription("Your in-game name")
+      .setRequired(true)
+  );
 
-    // Check if the name is already taken by someone else (case-insensitive)
-    const row = db
-      .prepare('SELECT discord_id FROM users WHERE LOWER(ingame_name) = LOWER(?)')
-      .get(ingameName);
+export async function execute(interaction) {
+  const ingameName = interaction.options.getString("name").trim();
+  const guild = interaction.guild;
+  const member = await guild.members.fetch(interaction.user.id);
 
-    if (row && row.discord_id !== discordId) {
-      await interaction.reply(`❌ The name **${ingameName}** is already registered by someone else.`, ephemeral: true);
-      return;
-    }
+  // Open DB
+  const db = await open({
+    filename: "./database/users.sqlite",
+    driver: sqlite3.Database
+  });
 
-    // Insert or update user's own record
-    const stmt = db.prepare(`
-      INSERT INTO users (discord_id, ingame_name)
-      VALUES (?, ?)
-      ON CONFLICT(discord_id) DO UPDATE SET ingame_name=excluded.ingame_name
-    `);
-    stmt.run(discordId, ingameName);
+  // Create table if not exists
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      discord_id TEXT PRIMARY KEY,
+      ingame_name TEXT
+    );
+  `);
 
-    // Update the user's nickname in the server
+  // Case-insensitive check
+  const existingName = await db.get(
+    "SELECT discord_id FROM users WHERE LOWER(ingame_name) = LOWER(?)",
+    ingameName
+  );
+
+  // If name belongs to someone else → block
+  if (existingName && existingName.discord_id !== interaction.user.id) {
+    return await interaction.reply({
+      content: `❌ The name **${ingameName}** is already registered by someone else.`,
+      ephemeral: true
+    });
+  }
+
+  // Check if this user already registered
+  const userRow = await db.get(
+    "SELECT * FROM users WHERE discord_id = ?",
+    interaction.user.id
+  );
+
+  if (userRow) {
+    // ⭐ Update existing record
+    await db.run(
+      "UPDATE users SET ingame_name = ? WHERE discord_id = ?",
+      ingameName,
+      interaction.user.id
+    );
+
+    // Update Discord nickname
     try {
-      const member = await interaction.guild.members.fetch(discordId);
-      if (member) {
-        await member.setNickname(ingameName);
-      }
+      await member.setNickname(ingameName);
     } catch (err) {
-      console.error('Failed to change nickname:', err);
+      console.log("Nickname change failed:", err);
     }
 
-    await interaction.reply(`✅ Registered your in-game name as **${ingameName}**!`);
-  },
-};
+    return await interaction.reply({
+      content: `🔄 Updated your in-game name to **${ingameName}**!`,
+      ephemeral: true
+    });
+  }
+
+  // ⭐ Insert new record
+  await db.run(
+    "INSERT INTO users (discord_id, ingame_name) VALUES (?, ?)",
+    interaction.user.id,
+    ingameName
+  );
+
+  // Update Discord nickname
+  try {
+    await member.setNickname(ingameName);
+  } catch (err) {
+    console.log("Nickname change failed:", err);
+  }
+
+  return await interaction.reply({
+    content: `✅ Registered your in-game name as **${ingameName}**!`,
+    ephemeral: true
+  });
+}
