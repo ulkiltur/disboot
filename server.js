@@ -24,7 +24,7 @@ app.listen(PORT, () => {
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
-const commands = [register, whoami];
+const commands = [register.data.toJSON(), whoami];
 commands.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
