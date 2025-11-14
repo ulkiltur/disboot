@@ -23,7 +23,7 @@ export const register = {
       .get(ingameName);
 
     if (row && row.discord_id !== discordId) {
-      await interaction.reply(`❌ The name **${ingameName}** is already registered by someone else.`);
+      await interaction.reply(`❌ The name **${ingameName}** is already registered by someone else.`, ephemeral: true);
       return;
     }
 
