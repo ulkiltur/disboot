@@ -32,17 +32,21 @@ commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 // -------------------------------
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
+const guilds = [process.env.GUILD_ID, "1445401393643917366"];
+
+
 (async () => {
   try {
     console.log('Refreshing slash commands…');
 
-    // Convert all .data to JSON for registration
-    await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-      { body: commandList.map(c => c.data.toJSON()) }
-    );
+    for (const guildId of guilds) {
+      await rest.put(
+        Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+        { body: commandList.map(c => c.data.toJSON()) }
+      );
+      console.log(`Slash commands registered for guild ${guildId}`);
+    }
 
-    console.log('Slash commands registered.');
   } catch (error) {
     console.error(error);
   }
