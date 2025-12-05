@@ -139,8 +139,7 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
       weapon1,
       weapon2,
       score,
-      discordId,
-      role
+      discordId
     );
   } else {
     await db.run(
