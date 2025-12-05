@@ -83,12 +83,14 @@ export default {
         driver: sqlite.Database,
       });
 
-      const ingame_name = await db.get(
+      const row = await db.get(
         "SELECT ingame_name FROM users WHERE discord_id = ?",
         interaction.user.id
       );
 
-      await saveSkills(interaction.user.id, ingame_name, role, detected, gooseScore);
+      const ingameName = row ? row.ingame_name : null;
+
+      await saveSkills(interaction.user.id, ingameName, role, detected, gooseScore);
 
     } catch (err) {
       console.error("OCR failed:", err);
