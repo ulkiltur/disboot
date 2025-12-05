@@ -28,13 +28,23 @@ export default {
       const { data } = await worker.recognize(image.url, "eng");
       const text = data.text.replace(/\s+/g, " ").trim();
 
-      const martial1 = text.match(/Nameless Sword/i)?.[0] ?? "❌";
-      const martial2 = text.match(/Strategic Sword/i)?.[0] ?? "❌";
-      const gooseScore = text.match(/(\d+\.\d+)\s*Goose/i)?.[1] ?? "❌";
+      const martialArts = ["Nameless Sword", "Strategic Sword", "Ninefold Umbrella", "Panacea Fan", "Inkwell Fan", "Stormbreaker Spear",
+                            "Nameless Spear", "Heavenquaker Spear", "Soulshade Umbrella", "Infernal Twinblades", "Thundercry Blade",
+                            "Mortal Rope Dart"  ];
 
-      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• Nameless Sword: **${martial1}**\n• Strategic Sword: **${martial2}**\n• Goose Score: **${gooseScore}**`;
+      // Detect each martial art
+      const detected = martialArts.map(name => {
+        return `${name}: **${text.match(new RegExp(name, "i"))?.[0] ?? "❌"}**`;
+      });
+
+      // Detect goose score
+      const gooseScore = text.match(/(\d+\.\d+)\s*(Goose|Goo0se)/i)?.[1] ?? "❌";
+
+      // Build message
+      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${detected.join("\n• ")}\n• Goose Score: **${gooseScore}**`;
 
       await interaction.editReply(msg);
+
 
     } catch (err) {
       console.error("OCR failed:", err);
