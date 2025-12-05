@@ -34,18 +34,25 @@ export default {
 
       const martialArts = ["Nameless Sword", "Strategic Sword", "Ninefold Umbrella", "Panacea Fan", "Inkwell Fan", "Stormbreaker Spear",
                             "Nameless Spear", "Heavenquaker Spear", "Soulshade Umbrella", "Infernal Twinblades", "Thundercry Blade",
-                            "Mortal Rope Dart"  ];
+                            "Mortal Rope Dart"];
 
       // Detect each martial art
       const detected = martialArts.map(name => {
-        return `${name}: **${text.match(new RegExp(name, "i"))?.[0] ?? "❌"}**`;
+        const found = text.match(new RegExp(name, "i"))?.[0] ?? null;
+        return {
+          name,
+          found: found !== null,
+          raw: `${name}: **${found ?? "❌"}**`
+        };
       });
+
 
       // Detect goose score
       // Matches a number immediately before "Goose", "Goo0se", or OCR variants
       const match = text.match(/(\d+(?:\.\d+)?)(?:[^\dA-Za-z]{0,5})(Goose|Goo0se|Coose|0oose|Coo0se)/i);
 
       const gooseScore = match ? parseFloat(match[1]) : 0;
+
 
       // Default role
       function hasWeapon(name, detected) {
@@ -64,7 +71,7 @@ export default {
         role = "Ranged DPS";
       }
 
-      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.join("\n• ")}\n• Goose Score: **${gooseScore}**`;
+      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.map(w => w.raw).join("\n• ")}• Goose Score: **${gooseScore}**`;
 
       await interaction.editReply(msg);
 
@@ -115,7 +122,10 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
     );
   `);
 
-  const weaponNames = detectedWeapons.filter(w => w.found).map(w => w.name);
+  const weaponNames = detectedWeapons
+  .filter(w => w.found)
+  .map(w => w.name);
+
   const weapon1 = weaponNames[0] ?? null;
   const weapon2 = weaponNames[1] ?? null;
 
