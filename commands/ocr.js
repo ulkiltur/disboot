@@ -1,17 +1,20 @@
 import { SlashCommandBuilder } from "discord.js";
-import Tesseract from "tesseract.js";  // or `import { createWorker } from 'tesseract.js';`
+import Tesseract from "tesseract.js"; 
 import path from "path";
 
+// Create a worker promise
 let workerPromise = Tesseract.createWorker({
   workerPath: path.resolve("./node_modules/tesseract.js/dist/worker.min.js"),
   corePath: path.resolve("./node_modules/tesseract.js/dist/tesseract-core.wasm.js"),
-  // langPath not always needed; Tesseract.js ships with bundled trained data
 });
 
-// optional: load the worker once and reuse
+// Load and initialize the worker once
 const ready = (async () => {
   const w = await workerPromise;
-  return w;  // already “ready”
+  await w.load();
+  await w.loadLanguage(["eng"]);    // language as array
+  await w.initialize(["eng"]);      // language as array
+  return w;
 })();
 
 export default {
@@ -37,10 +40,10 @@ export default {
     await interaction.reply("🔍 Reading image…");
 
     try {
-      // Wait for worker to be ready
-      const worker = await ready;
+      const worker = await ready; // wait for worker to be ready
 
-      const { data } = await worker.recognize(image.url);
+      // Pass language as array
+      const { data } = await worker.recognize(image.url, ["eng"]);
       const text = data.text.replace(/\s+/g, " ").trim();
 
       // Extract values
