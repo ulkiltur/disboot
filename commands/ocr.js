@@ -118,7 +118,7 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
       weapon2 TEXT,
       score REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY(discord_id, role)
+      PRIMARY KEY(discord_id)
     );
   `);
 
@@ -127,15 +127,15 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
 
   // Check if entry exists
   const existing = await db.get(
-    "SELECT * FROM skills WHERE discord_id = ? AND role = ?",
-    discordId,
-    role
+    "SELECT * FROM skills WHERE discord_id = ?",
+    discordId
   );
 
   if (existing) {
     await db.run(
-      "UPDATE skills SET ingame_name = ?, weapon1 = ?, weapon2 = ?, score = ? WHERE discord_id = ? AND role = ?",
+      "UPDATE skills SET ingame_name = ?, role = ?, weapon1 = ?, weapon2 = ?, score = ? WHERE discord_id = ?",
       ingameName,
+      role,
       weapon1,
       weapon2,
       score,
