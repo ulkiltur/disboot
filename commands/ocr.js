@@ -1,8 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import Tesseract from "tesseract.js";
 
-// create a worker once
-const workerPromise = Tesseract.createWorker(); // <-- no paths
+const workerPromise = Tesseract.createWorker(); // Node resolves automatically
 
 export default {
   data: new SlashCommandBuilder()
@@ -20,34 +19,31 @@ export default {
       return interaction.reply({ content: "❌ Upload a valid image file.", ephemeral: true });
     }
 
-    await interaction.reply("🔍 Reading image…");
+    // Use deferReply to avoid interaction timeout
+    await interaction.deferReply();
 
     try {
       const worker = await workerPromise;
 
-      // pass language as string to recognize (v5.1)
       const { data } = await worker.recognize(image.url, "eng");
       const text = data.text.replace(/\s+/g, " ").trim();
 
-      const martial1 = text.match(/Nameless Sword/i)?.[0] ?? null;
-      const martial2 = text.match(/Strategic Sword/i)?.[0] ?? null;
-      const gooseScore = text.match(/(\d+\.\d+)\s*Goose/i)?.[1] ?? null;
+      const martial1 = text.match(/Nameless Sword/i)?.[0] ?? "❌";
+      const martial2 = text.match(/Strategic Sword/i)?.[0] ?? "❌";
+      const gooseScore = text.match(/(\d+\.\d+)\s*Goose/i)?.[1] ?? "❌";
 
-      let msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\``;
-      msg += `\n\n🔎 Detected:`;
-      msg += `\n• Nameless Sword: **${martial1 ?? "❌"}**`;
-      msg += `\n• Strategic Sword: **${martial2 ?? "❌"}**`;
-      msg += `\n• Goose Score: **${gooseScore ?? "❌"}**`;
+      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• Nameless Sword: **${martial1}**\n• Strategic Sword: **${martial2}**\n• Goose Score: **${gooseScore}**`;
 
-      return interaction.editReply(msg);
+      await interaction.editReply(msg);
 
     } catch (err) {
       console.error("OCR failed:", err);
-      return interaction.editReply("❌ OCR failed.");
+      await interaction.editReply("❌ OCR failed.");
     }
   }
 };
 
+// terminate worker on exit
 process.on("exit", async () => {
   const worker = await workerPromise;
   await worker.terminate();
