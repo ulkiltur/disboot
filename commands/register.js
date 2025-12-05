@@ -6,13 +6,13 @@ const sqlite = sqlite3.verbose();
 
 export default {
   data: new SlashCommandBuilder()
-    .setName("registro")
-    .setDescription("Registrar o actualizar")
+    .setName("register")
+    .setDescription("Registration or updating")
     .addStringOption(option =>
       option
         .setName("name")
-        .setDescription("Tu nombre en el juego")
-        .setRequired(true) // ✅ required, ensures getString never returns null
+        .setDescription("Your ingame-name")
+        .setRequired(true)
     ),
 
   async execute(interaction) {
@@ -20,7 +20,7 @@ export default {
     const ingameName = interaction.options.getString("name");
     if (!ingameName) {
       return interaction.reply({
-        content: "❌ Debes ingresar un nombre válido.",
+        content: "❌ Please provide a valid ingame name.",
         flags: 64, // EPHEMERAL
       });
     }
@@ -48,7 +48,7 @@ export default {
 
     if (existingName && existingName.discord_id !== interaction.user.id) {
       return interaction.reply({
-        content: `❌ El nombre **${name}** ya está registrado.`,
+        content: `❌ Name **${name}** is already registered.`,
         flags: 64,
       });
     }
@@ -68,11 +68,11 @@ export default {
       try {
         await member.setNickname(name);
       } catch (err) {
-        console.log("Nickname change failed:", err);
+        console.log("Ingame-name change failed:", err);
       }
 
       return interaction.reply({
-        content: `🔄 Se ha actualizado tu nombre a **${name}**!`,
+        content: `🔄 Your ingame-name has been updated successfully to: **${name}**!`,
         flags: 64,
       });
     }
@@ -90,7 +90,7 @@ export default {
     }
 
     return interaction.reply({
-      content: `✅ Registrado exitosamente: **${name}**!`,
+      content: `✅ Registration has been successful: welcome, **${name}**!`,
       flags: 64,
     });
   },

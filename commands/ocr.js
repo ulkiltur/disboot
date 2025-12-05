@@ -1,5 +1,9 @@
 import { SlashCommandBuilder } from "discord.js";
 import Tesseract from "tesseract.js";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+const sqlite = sqlite3.verbose();
 
 const workerPromise = Tesseract.createWorker(); // Node resolves automatically
 
@@ -50,6 +54,25 @@ export default {
 
       await interaction.editReply(msg);
 
+      var role = "Unknown Role";
+
+      if(detected[0].includes("Panacea Fan") || detected[1].includes("Panacea Fan")
+         && detected[0].includes("Soulshade Umbrella") || detected[1].includes("Soulshade Umbrella")){
+        role = "Healer";
+      }
+      if(detected[0].includes("Stormbreaker Spear") || detected[1].includes("Stormbreaker Spear")
+         && detected[0].includes("Thundercry Blade") || detected[1].includes("Thundercry Blade")){
+        role = "Tank";
+      }
+      if(detected[0].includes("Ninefold Umbrella") || detected[1].includes("Ninefold Umbrella")
+         && detected[0].includes("Inkwell Fan") || detected[1].includes("Inkwell Fan")){
+        role = "Ranged DPS";
+      }
+      else{
+        role = "Melee DPS";
+      }
+
+      await saveSkills(interaction.user.id, ingameName, role, detected, gooseScore);
 
     } catch (err) {
       console.error("OCR failed:", err);
@@ -62,4 +85,59 @@ export default {
 process.on("exit", async () => {
   const worker = await workerPromise;
   await worker.terminate();
+  
 });
+
+async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
+  const db = await open({
+    filename: "./database/users.sqlite",
+    driver: sqlite.Database,
+  });
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS skills (
+      discord_id TEXT NOT NULL,
+      ingame_name TEXT NOT NULL,
+      role TEXT NOT NULL,
+      weapon1 TEXT,
+      weapon2 TEXT,
+      score REAL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY(discord_id, role)
+    );
+  `);
+
+  const weapon1 = detectedWeapons[0] ?? null;
+  const weapon2 = detectedWeapons[1] ?? null;
+
+  // Check if entry exists
+  const existing = await db.get(
+    "SELECT * FROM skills WHERE discord_id = ? AND role = ?",
+    discordId,
+    role
+  );
+
+  if (existing) {
+    await db.run(
+      "UPDATE skills SET ingame_name = ?, weapon1 = ?, weapon2 = ?, score = ? WHERE discord_id = ? AND role = ?",
+      ingameName,
+      weapon1,
+      weapon2,
+      score,
+      discordId,
+      role
+    );
+  } else {
+    await db.run(
+      "INSERT INTO skills (discord_id, ingame_name, role, weapon1, weapon2, score) VALUES (?, ?, ?, ?, ?, ?)",
+      discordId,
+      ingameName,
+      role,
+      weapon1,
+      weapon2,
+      score
+    );
+  }
+
+  await db.close();
+}

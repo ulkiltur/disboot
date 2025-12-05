@@ -6,8 +6,8 @@ const sqlite = sqlite3.verbose();
 
 export default {
   data: new SlashCommandBuilder()
-    .setName("yo")
-    .setDescription("Comprueba tus datos"),
+    .setName("whoami")
+    .setDescription("Check your profile"),
 
   async execute(interaction) {
     const discordId = interaction.user.id;
@@ -18,20 +18,36 @@ export default {
       driver: sqlite.Database
     });
 
-    const row = await db.get(
+    // Fetch user info
+    const userRow = await db.get(
       "SELECT ingame_name FROM users WHERE discord_id = ?",
       discordId
     );
 
-    if (!row) {
+    if (!userRow) {
       return interaction.reply({
-        content: "❌ Aún no te has registrado. Usa /registro <nombre>.",
+        content: "❌ Not registered. Use /register <ingame-name>.",
         flags: 64
       });
     }
 
-    await interaction.reply({
-      content: `✅ Tu nombre en el juego es **${row.ingame_name}**.`,
+    // Fetch skills for this user
+    const skillRows = await db.all(
+      "SELECT role, weapon1, weapon2, score, created_at FROM skills WHERE discord_id = ?",
+      discordId
+    );
+
+    let skillText = "";
+    if (skillRows.length === 0) {
+      skillText = "❌ No skills found.";
+    } else {
+      skillText = skillRows.map(s => 
+        `🗡 **Type:** ${s.type}\n• Weapon 1: ${s.weapon1 ?? "❌"}\n• Weapon 2: ${s.weapon2 ?? "❌"}\n• Score: ${s.score ?? "❌"}\n• Updated: ${s.created_at}`
+      ).join("\n\n");
+    }
+
+    return interaction.reply({
+      content: `✅ Hello, **${userRow.ingame_name}**.\n\n${skillText}`,
       flags: 64
     });
   }
