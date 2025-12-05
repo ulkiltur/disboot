@@ -47,28 +47,33 @@ export default {
 
       const gooseScore = match ? parseFloat(match[1]) : 0;
 
-      var role = "Unknown Role";
+      // Convert detected array to simple boolean checks
+      const detectedWeapons = detected.map(d => {
+        const [name, value] = d.split(':');
+        return { name: name.trim(), found: value && !value.includes('❌') };
+      });
 
-      if(
-        (detected[0].includes("Panacea Fan") || detected[1].includes("Panacea Fan"))
-         && (detected[0].includes("Soulshade Umbrella") || detected[1].includes("Soulshade Umbrella"))
-        ){
+      // Default role
+      let role = "Melee DPS";
+
+      // Healer
+      if (
+        detectedWeapons.some(w => w.name === "Panacea Fan" && w.found) &&
+        detectedWeapons.some(w => w.name === "Soulshade Umbrella" && w.found)
+      ) {
         role = "Healer";
-      }
-      else if(
-        (detected[0].includes("Stormbreaker Spear") || detected[1].includes("Stormbreaker Spear"))
-         && (detected[0].includes("Thundercry Blade") || detected[1].includes("Thundercry Blade"))
-        ){
+      // Tank
+      } else if (
+        detectedWeapons.some(w => w.name === "Stormbreaker Spear" && w.found) &&
+        detectedWeapons.some(w => w.name === "Thundercry Blade" && w.found)
+      ) {
         role = "Tank";
-      }
-      else if(
-        (detected[0].includes("Ninefold Umbrella") || detected[1].includes("Ninefold Umbrella"))
-         && (detected[0].includes("Inkwell Fan") || detected[1].includes("Inkwell Fan"))
-        ){
+      // Ranged DPS
+      } else if (
+        detectedWeapons.some(w => w.name === "Ninefold Umbrella" && w.found) &&
+        detectedWeapons.some(w => w.name === "Inkwell Fan" && w.found)
+      ) {
         role = "Ranged DPS";
-      }
-      else{
-        role = "Melee DPS";
       }
 
       const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.join("\n• ")}\n• Goose Score: **${gooseScore}**`;
