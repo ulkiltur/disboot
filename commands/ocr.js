@@ -47,34 +47,23 @@ export default {
 
       const gooseScore = match ? parseFloat(match[1]) : 0;
 
-      // Convert detected array to simple boolean checks
-      const detectedWeapons = detected.map(d => {
-        const [name, value] = d.split(':');
-        return { name: name.trim(), found: value && !value.includes('❌') };
-      });
 
       // Default role
-      let role = "Melee DPS";
-
-      // Healer
-      if (
-        detectedWeapons.some(w => w.name === "Panacea Fan" && w.found) &&
-        detectedWeapons.some(w => w.name === "Soulshade Umbrella" && w.found)
-      ) {
-        role = "Healer";
-      // Tank
-      } else if (
-        detectedWeapons.some(w => w.name === "Stormbreaker Spear" && w.found) &&
-        detectedWeapons.some(w => w.name === "Thundercry Blade" && w.found)
-      ) {
-        role = "Tank";
-      // Ranged DPS
-      } else if (
-        detectedWeapons.some(w => w.name === "Ninefold Umbrella" && w.found) &&
-        detectedWeapons.some(w => w.name === "Inkwell Fan" && w.found)
-      ) {
-        role = "Ranged DPS";
-      }
+      const role = (() => {
+        if (detected.some(d => d.includes("Panacea Fan")) &&
+            detected.some(d => d.includes("Soulshade Umbrella"))) {
+          return "Healer";
+        }
+        if (detected.some(d => d.includes("Stormbreaker Spear")) &&
+            detected.some(d => d.includes("Thundercry Blade"))) {
+          return "Tank";
+        }
+        if (detected.some(d => d.includes("Ninefold Umbrella")) &&
+            detected.some(d => d.includes("Inkwell Fan"))) {
+          return "Ranged DPS";
+        }
+        return "Melee DPS";
+      })();
 
       const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.join("\n• ")}\n• Goose Score: **${gooseScore}**`;
 
@@ -110,7 +99,7 @@ process.on("exit", async () => {
 
 async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
   const db = await open({
-    filename: "/var/data/users.sqlite", // persistent path
+    filename: "/var/data/users.sqlite",
     driver: sqlite.Database,
   });
 
@@ -127,10 +116,10 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
     );
   `);
 
-  const weapon1 = detectedWeapons[0] ?? null;
-  const weapon2 = detectedWeapons[1] ?? null;
+  const weaponNames = detectedWeapons.filter(w => w.found).map(w => w.name);
+  const weapon1 = weaponNames[0] ?? null;
+  const weapon2 = weaponNames[1] ?? null;
 
-  // Check if entry exists
   const existing = await db.get(
     "SELECT * FROM skills WHERE discord_id = ?",
     discordId
