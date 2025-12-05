@@ -56,8 +56,9 @@ export default {
 
       // Default role
       function hasWeapon(name, detected) {
-        return detected.some(d => d.startsWith(name) && !d.includes("❌"));
+        return detected.some(d => d.name === name && d.found === true);
       }
+
 
       let role = "Melee DPS";
 
