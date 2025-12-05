@@ -157,5 +157,9 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
     );
   }
 
+  const msg = `📝Skills saved for **${ingameName ?? "Unknown"}**: Role: **${role}**, Weapon 1: **${weapon1 ?? "❌"}**, Weapon 2: **${weapon2 ?? "❌"}**, Goose Score: **${score}**.`;
+
+  await interaction.deferReply(msg);
+
   await db.close();
 }
