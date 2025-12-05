@@ -3,14 +3,14 @@ import { SlashCommandBuilder } from "discord.js";
 import { createWorker } from "tesseract.js";
 import path from "path";
 
-// Create a single worker instance and initialize it once
+// --- Create worker ---
 const worker = createWorker({
   workerPath: path.resolve("./node_modules/tesseract.js/dist/worker.min.js"),
   corePath: path.resolve("./node_modules/tesseract.js/dist/tesseract-core.wasm.js"),
   langPath: path.resolve("./node_modules/tesseract.js/dist/lang/")
 });
 
-// Promise to ensure worker is loaded/initialized only once
+// --- Initialize once (promise) ---
 const workerReady = (async () => {
   await worker.load();
   await worker.loadLanguage("eng");
