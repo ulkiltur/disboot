@@ -1,10 +1,10 @@
 // commands/ocr.js
 import { SlashCommandBuilder } from "discord.js";
-import { createWorker } from "tesseract.js";
+import Tesseract from "tesseract.js"; // default import
 import path from "path";
 
 // --- Create worker ---
-const worker = createWorker({
+const worker = Tesseract.createWorker({
   workerPath: path.resolve("./node_modules/tesseract.js/dist/worker.min.js"),
   corePath: path.resolve("./node_modules/tesseract.js/dist/tesseract-core.wasm.js"),
   langPath: path.resolve("./node_modules/tesseract.js/dist/lang/")
