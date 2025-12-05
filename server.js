@@ -4,6 +4,7 @@ import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js'
 import register from "./commands/register.js";
 import whoami from "./commands/whoami.js";
 import ocr from "./commands/ocr.js";
+import rank from "./commands/rank.js";
 
 
 
@@ -22,7 +23,7 @@ app.listen(PORT, () => console.log(`Render keep-alive server running on port ${P
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
-const commandList = [register, whoami, ocr];
+const commandList = [register, whoami, ocr, rank];
 
 // Add commands to collection
 commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));
