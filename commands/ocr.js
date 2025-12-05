@@ -24,7 +24,7 @@ export default {
     }
 
     // Use deferReply to avoid interaction timeout
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     try {
       const worker = await workerPromise;
@@ -72,7 +72,7 @@ export default {
         role = "Ranged DPS";
       }
 
-      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.map(w => w.raw).join("\n• ")}• Goose Score: **${gooseScore}**`;
+      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.map(w => w.raw).join("\n• ")}\n• Goose Score: **${gooseScore}**`;
 
       await interaction.editReply(msg);
 
