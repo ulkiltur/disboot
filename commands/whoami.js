@@ -48,11 +48,10 @@ export default {
       skillText = "❌ No skills found.";
     } else {
       skillText = skillRows.map(s => 
-        `🗡 **Type:** ${s.role}\n` +
+        `🗡 **Role:** ${s.role}\n` +
         `• Weapon 1: ${s.weapon1 ?? "❌"}\n` +
         `• Weapon 2: ${s.weapon2 ?? "❌"}\n` +
-        `• Score: ${s.score ?? "❌"}\n` +
-        `• Updated: ${s.created_at}`
+        `• Score: ${s.score ?? "❌"}\n`
       ).join("\n\n");
     }
 

@@ -72,7 +72,16 @@ export default {
         role = "Ranged DPS";
       }
 
-      const msg = `📝 **OCR text:**\n\`\`\`${text}\`\`\`\n\n🔎 Detected:\n• ${role}\n• ${detected.map(w => w.raw).join("\n• ")}\n• Goose Score: **${gooseScore}**`;
+      const detectedList = detected
+        .filter(w => w.found)
+        .map(w => `• ${w.raw}`)
+        .join("\n");
+
+      const msg = `📝 Detected:
+      • ${role}
+      ${detectedList}
+      • Goose Score: **${gooseScore}**`;
+
 
       await interaction.editReply(msg);
 
@@ -110,6 +119,7 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
     driver: sqlite.Database,
   });
 
+  // Ensure table exists
   await db.exec(`
     CREATE TABLE IF NOT EXISTS skills (
       discord_id TEXT NOT NULL,
@@ -119,33 +129,47 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
       weapon2 TEXT,
       score REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY(discord_id)
+      PRIMARY KEY(discord_id, weapon1, weapon2)
     );
   `);
 
-  const weaponNames = detectedWeapons
-  .filter(w => w.found)
-  .map(w => w.name);
-
+  // Only the first two detected weapons
+  const weaponNames = detectedWeapons.filter(w => w.found).map(w => w.name);
   const weapon1 = weaponNames[0] ?? null;
   const weapon2 = weaponNames[1] ?? null;
 
+  if (!weapon1 && !weapon2) {
+    console.log(`No weapons detected for ${ingameName} (${discordId}), skipping save.`);
+    await db.close();
+    return;
+  }
+
+  // Check if this combination already exists
   const existing = await db.get(
-    "SELECT * FROM skills WHERE discord_id = ?",
-    discordId
+    "SELECT * FROM skills WHERE discord_id = ? AND weapon1 = ? AND weapon2 = ?",
+    discordId,
+    weapon1,
+    weapon2
   );
 
   if (existing) {
-    await db.run(
-      "UPDATE skills SET ingame_name = ?, role = ?, weapon1 = ?, weapon2 = ?, score = ? WHERE discord_id = ?",
-      ingameName,
-      role,
-      weapon1,
-      weapon2,
-      score,
-      discordId
-    );
+    if (existing.score !== score) {
+      // Update score only if different
+      await db.run(
+        "UPDATE skills SET score = ?, role = ?, ingame_name = ?, created_at = CURRENT_TIMESTAMP WHERE discord_id = ? AND weapon1 = ? AND weapon2 = ?",
+        score,
+        role,
+        ingameName,
+        discordId,
+        weapon1,
+        weapon2
+      );
+      console.log(`Updated score for ${ingameName} (${discordId}) - Weapons: ${weapon1}, ${weapon2}, Score: ${score}`);
+    } else {
+      console.log(`Entry already exists for ${ingameName} (${discordId}) - Weapons: ${weapon1}, ${weapon2}, Score unchanged.`);
+    }
   } else {
+    // Insert new combination
     await db.run(
       "INSERT INTO skills (discord_id, ingame_name, role, weapon1, weapon2, score) VALUES (?, ?, ?, ?, ?, ?)",
       discordId,
@@ -155,9 +179,8 @@ async function saveSkills(discordId, ingameName, role, detectedWeapons, score) {
       weapon2,
       score
     );
+    console.log(`Added new entry for ${ingameName} (${discordId}) - Role: ${role}, Weapons: ${weapon1}, ${weapon2}, Score: ${score}`);
   }
-
-  console.log(`Skills saved for ${ingameName} (${discordId}) - Role: ${role}, Weapons: ${weapon1}, ${weapon2}, Score: ${score})`);
 
   await db.close();
 }
