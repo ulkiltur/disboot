@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from "discord.js";
 import Tesseract from "tesseract.js";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import Fuse from "fuse.js";
 
 const sqlite = sqlite3.verbose();
 
@@ -54,12 +55,21 @@ export default {
         "Abanico del Tintero", "Sombrilla de las Almas", "Dardo Mortal"
       ];
 
+      const fuse = new Fuse(text.split(/\s+/), {
+        includeScore: true,
+        threshold: 0.3,       // adjust for sensitivity
+        ignoreLocation: true,
+        distance: 100,
+      });
+
+      // Function to check if a weapon is present in OCR text
       const detected = martialArts.map(name => {
-        const found = text.match(new RegExp(name, "i"))?.[0] ?? null;
+        const result = fuse.search(name)[0]; // best match
+        const found = result && result.score < 0.3; // low score = good match
         return {
           name,
-          found: found !== null,
-          raw: `${name}: **${found ?? "❌"}**`
+          found,
+          raw: `${name}: **${found ? result.item : "❌"}**`
         };
       });
 
