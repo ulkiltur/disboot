@@ -9,8 +9,8 @@ const workerPromise = Tesseract.createWorker();
 
 export default {
   data: new SlashCommandBuilder()
-    .setName("ocr")
-    .setDescription("Extract martial skills and goose/ganso score from WWM screenshot")
+    .setName("Goose")
+    .setDescription("Extract martial skills and goose score from WWM screenshot")
     .addAttachmentOption(opt =>
       opt.setName("image")
         .setDescription("Upload your screenshot")
@@ -116,10 +116,15 @@ export default {
         .join("\n");
 
       const msg =
-`📝 **Detected Info**
-• **Role:** ${role}
- ${detected ? detected + "\n" : ""}
-• **Score (Goose/Ganso):** ⭐ **${gooseScore}**`;
+      `📝 **Detected Info**
+      • **Role:** ${role}
+      ${detectedList ? detectedList + "\n" : ""}
+      • **Score (Goose/Ganso):** ⭐ **${gooseScore}**
+      📸 **OCR Text:** 
+      \`\`\`
+      ${text}
+      \`\`\``;
+
 
       await interaction.editReply(msg);
 
