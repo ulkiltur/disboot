@@ -55,23 +55,22 @@ export default {
         "Abanico del Tintero", "Sombrilla de las Almas", "Dardo Mortal"
       ];
 
-      const fuse = new Fuse(text.split(/\s+/), {
+      const fuse = new Fuse([text], { 
         includeScore: true,
-        threshold: 0.3,       // adjust for sensitivity
+        threshold: 0.3,
         ignoreLocation: true,
-        distance: 100,
       });
 
-      // Function to check if a weapon is present in OCR text
       const detected = martialArts.map(name => {
-        const result = fuse.search(name)[0]; // best match
-        const found = result && result.score < 0.3; // low score = good match
-        return {
-          name,
-          found,
-          raw: `${name}: **${found ? result.item : "❌"}**`
-        };
+          const result = fuse.search(name)[0]; // best match
+          const found = result && result.score < 0.3;
+          return {
+            name,
+            found,
+            raw: `${name}: **${found ? name : "❌"}**` // Use name instead of result.item
+          };
       });
+
 
       // -----------------------------------------
       // SCORE DETECTION (3 METHOD PRIORITY ORDER)
