@@ -87,6 +87,22 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
+client.on("guildCreate", async (guild) => {
+  console.log(`Joined new guild: ${guild.id}`);
+
+  try {
+    await rest.put(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, guild.id),
+      { body: commandList.map(c => c.data.toJSON()) }
+    );
+
+    console.log(`Slash commands registered for new guild ${guild.id}`);
+  } catch (err) {
+    console.error("Failed to register commands for new guild:", err);
+  }
+});
+
+
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
