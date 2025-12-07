@@ -55,21 +55,23 @@ export default {
         "Abanico del Tintero", "Sombrilla de las Almas", "Dardo Mortal"
       ];
 
-      const fuse = new Fuse([text], { 
+      const fuse = new Fuse([text], {
         includeScore: true,
-        threshold: 0.3,
+        threshold: 0.5,   // higher = more tolerant
         ignoreLocation: true,
+        useExtendedSearch: true
       });
 
       const detected = martialArts.map(name => {
-          const result = fuse.search(name)[0]; // best match
-          const found = result && result.score < 0.3;
-          return {
-            name,
-            found,
-            raw: `${name}: **${found ? name : "❌"}**` // Use name instead of result.item
-          };
+        const result = fuse.search(name)[0];
+        const found = result && result.score < 0.5;
+        return {
+          name,
+          found,
+          raw: `${name}: **${found ? name : "❌"}**`
+        };
       });
+
 
 
       // -----------------------------------------
