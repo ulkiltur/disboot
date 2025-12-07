@@ -195,9 +195,30 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
     );
   `);
 
-  const weaponNames = detectedWeapons.filter(w => w.found).map(w => w.name);
+  const translationMap = {
+  // Spanish → English
+  "Espada Estratégica": "Strategic Sword",
+  "Espada Sin Nombre": "Nameless Sword",
+  "Lanza Sin Nombre": "Nameless Spear",
+  "Espadas Gemelas Infernales": "Infernal Twinblades",
+  "Lanza del Temblor Celestial": "Heavenquaker Spear",
+  "Abanico Panacea": "Panacea Fan",
+  "Sombrilla Primaveral": "Ninefold Umbrella",
+  "Lanza Rompetormentas": "Stormbreaker Spear",
+  "Espada del Trueno": "Thundercry Blade",
+  "Abanico del Tintero": "Inkwell Fan",
+  "Sombrilla de las Almas": "Soulshade Umbrella",
+  "Dardo Mortal": "Mortal Rope Dart"
+};
+
+
+  const weaponNames = detectedWeapons
+  .filter(w => w.found)
+  .map(w => translationMap[w.name] ?? w.name); // translate if possible
   const weapon1 = weaponNames[0] ?? null;
   const weapon2 = weaponNames[1] ?? null;
+
+
 
   if (!weapon1 && !weapon2) {
     console.log(`No weapons detected for ${ingameName} (${discordId}), skipping save.`);
