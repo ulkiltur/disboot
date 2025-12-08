@@ -2,12 +2,26 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
+const ALLOWED_USERS = [
+  '1416909595955302431', // User 1 ID
+  '320573579961958402', // User 2 ID
+  '1439615858480775198'  // User 3 ID
+];
+
 export default {
   data: new SlashCommandBuilder()
-    .setName("rankings")
+    .setName("rank")
     .setDescription("Show top 30 players per role based on score"),
 
   async execute(interaction) {
+
+    if (!ALLOWED_USERS.includes(interaction.user.id)) {
+      return interaction.reply({
+        content: '❌ You are not allowed to use /rank.',
+        ephemeral: true
+      });
+    }
+
     await interaction.deferReply(); // in case DB query takes a moment
 
     // Open DB

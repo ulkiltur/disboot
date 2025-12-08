@@ -133,11 +133,7 @@ export default {
       `📝 **Detected Info**
       • **Role:** ${role}
       ${detectedList ? detectedList + "\n" : ""}
-      • **Score (Goose/Ganso):** ⭐ **${gooseScore}**
-      📸 **OCR Text:** 
-      \`\`\`
-      ${text}
-      \`\`\``;
+      • **Score (Goose/Ganso):** ⭐ **${gooseScore}**`;
 
 
       await interaction.editReply(msg);
@@ -156,6 +152,29 @@ export default {
       );
 
       const ingameName = row ? row.ingame_name : null;
+
+      // -------------------------------------
+      // SEND IMAGE TO A LOG CHANNEL
+      // -------------------------------------
+
+      // Replace with your channel ID
+      const LOG_CHANNEL_ID = "1447698250323857622";
+
+      try {
+        const logChannel = await interaction.client.channels.fetch(LOG_CHANNEL_ID);
+
+        await logChannel.send({
+          content: `📸 **New Goose Upload**  
+      **In-Game:** ${ingameName ?? "Unknown"}  
+      **Role:** ${role}  
+      **Score:** ⭐ ${gooseScore}`,
+          files: [ image.url ]
+        });
+
+      } catch (err) {
+        console.error("Failed to send screenshot:", err);
+      }
+
 
       await saveSkills(interaction.user.id, ingameName, playerId, role, detected, gooseScore);
 

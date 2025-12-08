@@ -54,22 +54,8 @@ const guilds = [process.env.GUILD_ID, "1445401393643917366"];
 })();
 
 
-const ALLOWED_USERS = [
-  '1416909595955302431', // User 1 ID
-  '320573579961958402', // User 2 ID
-  '1439615858480775198'  // User 3 ID
-];
-
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-
-  // Check if user is allowed
-  if (!ALLOWED_USERS.includes(interaction.user.id)) {
-    return interaction.reply({
-      content: '❌ You are not allowed to use this command.',
-      ephemeral: true
-    });
-  }
 
   // -------------------------------
   // Handle interactions

@@ -89,6 +89,20 @@ export default {
       console.log("Nickname change failed:", err);
     }
 
+    const LOG_CHANNEL_ID = "1447698250323857622";
+
+    // LOG: Registration
+    try {
+      const logChannel = await interaction.client.channels.fetch(LOG_CHANNEL_ID);
+      await logChannel.send({
+        content: `🟢 **New Registration**
+    **Ingame Name:** ${name}`,
+      });
+    } catch (err) {
+      console.error("Failed to send register log:", err);
+    }
+
+
     return interaction.reply({
       content: `✅ Registration has been successful: welcome, **${name}**!`,
       flags: 64,
