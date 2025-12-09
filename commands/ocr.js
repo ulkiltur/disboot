@@ -63,9 +63,11 @@ export default {
 
         // French
         "Lames Jumelles Infernales",       // Infernal Twinblades
-        "Épée Stratégique",                // Strategic Sword
+        "Épée Stratégique",
+        "Epée Stratégique",                // Strategic Sword
         "Éventail Panacée",                // Panacea Fan
-        "Épée Sans Nom",                   // Nameless Sword
+        "Épée Sans Nom",
+        "Epée Sans Nom",                   // Nameless Sword
         "Parapluie des Âmes",              // Soulshade Umbrella
         "Parapluie Printanier",            // Ninefold Umbrella
         "Lame du Tonnerre",                // Thundercry Blade
@@ -91,13 +93,25 @@ export default {
       ];
 
 
+      function normalizeText(str) {
+        return str
+          .normalize("NFD")                // normalize accents
+          .replace(/[\u0300-\u036f]/g, "") // remove diacritics
+          .replace(/[^\w\s]/g, " ")        // remove symbols like *, /, \, |
+          .replace(/\s+/g, " ")            // normalize multiple spaces
+          .trim()
+          .toLowerCase();                  // lowercase for easy matching
+      }
+
       function isWeaponDetected(weaponName, ocrText) {
-        // split weapon name into words
-        const words = weaponName.split(/\s+/);
-        // create regex allowing 0-5 random chars between words
-        const pattern = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.{0,5}');
-        const regex = new RegExp(pattern, 'i');
-        return regex.test(ocrText);
+        const cleanOCR = normalizeText(ocrText);
+        const cleanWeapon = normalizeText(weaponName);
+
+        const words = cleanWeapon.split(" ");
+        const pattern = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".{0,5}");
+        const regex = new RegExp(pattern, "i");
+
+        return regex.test(cleanOCR);
       }
 
       const detected = martialArts.map(name => {
@@ -112,30 +126,28 @@ export default {
 
 
 
+
       // -----------------------------------------
       // SCORE DETECTION (3 METHOD PRIORITY ORDER)
       // -----------------------------------------
 
       let gooseScore = 0;
 
-      // 1️⃣ Normal Goose/Ganso detection
-      const scorePattern = /(\d+(?:\.\d+)?)[^\dA-Za-z]{0,5}(Goose|Goo0se|Coose|0oose|Coo0se|Ganso|Gan5o|Gans|Oie)/i;
-      const scoreMatch = text.match(scorePattern);
+      // Match variants of "Goose" or "Ganso" with some OCR errors
+      const scorePattern = /(\d+(?:\.\d+)?)[^\dA-Za-z]{0,5}(goose|goo0se|coose|0oose|coo0se|ganso|gan5o|gans|oie)/i;
+      const scoreMatch = normalizedText.match(scorePattern);
 
       if (scoreMatch) {
         gooseScore = parseFloat(scoreMatch[1]);
-      }
-
-      // 2️⃣ If not found: detect 5-digit raw score (XXXXX → X.XXXX)
-      if (!gooseScore) {
-        const fiveDigits = text.match(/\b\d{5}\b/g);
-        if (fiveDigits && fiveDigits.length) {
-          gooseScore = parseInt(fiveDigits[fiveDigits.length - 1]) / 10000;
+      } else {
+        // fallback: last 5-digit number → X.XXXX
+        const fiveDigits = normalizedText.match(/\b\d{5}\b/g);
+        if (fiveDigits?.length) {
+          gooseScore = parseInt(fiveDigits[fiveDigits.length - 1], 10) / 10000;
         }
       }
 
-
-      // 3️⃣ If still not found → fallback to 0
+      // final fallback
       if (!gooseScore) gooseScore = 0;
 
       // -------------------------------------
