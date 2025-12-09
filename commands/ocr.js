@@ -207,7 +207,7 @@ export default {
           seen.add(normalized);
           return true;
         })
-        .map(w => `• ${w.raw}`)
+        .map(w => `        • ${w.raw}`) // add spaces to match template indentation
         .join("\n");
 
       const msg =
