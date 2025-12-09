@@ -131,12 +131,13 @@ export default {
       // SCORE DETECTION (3 METHOD PRIORITY ORDER)
       // -----------------------------------------
 
-      let gooseScore = 0;
+      const normalizedText = normalizeText(text);
 
       // Match variants of "Goose" or "Ganso" with some OCR errors
       const scorePattern = /(\d+(?:\.\d+)?)[^\dA-Za-z]{0,5}(goose|goo0se|coose|0oose|coo0se|ganso|gan5o|gans|oie)/i;
-      const scoreMatch = normalizeText.match(scorePattern);
+      const scoreMatch = normalizedText.match(scorePattern);
 
+      let gooseScore = 0;
       if (scoreMatch) {
         gooseScore = parseFloat(scoreMatch[1]);
       } else {
