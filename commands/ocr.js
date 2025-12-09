@@ -36,8 +36,10 @@ export default {
     ),
 
   async execute(interaction) {
+    try {
+    console.log("Step 1: Fetching image");
     const image = interaction.options.getAttachment("image");
-
+    console.log("Step 2");
     if (!image?.contentType?.startsWith("image/")) {
       return interaction.reply({ content: "❌ Upload a valid image file.", ephemeral: true });
     }
@@ -78,6 +80,7 @@ export default {
       height: Math.floor(H * 0.10),
     };
 
+    console.log("Step 3");
     const [scoreBuf, wepBuf, wep2Buf, idBuf] = await Promise.all([
       sharp(imageBuffer).extract(scoreRegion).toBuffer(),
       sharp(imageBuffer).extract(weaponRegion1).toBuffer(),
@@ -108,12 +111,13 @@ export default {
       .toBuffer()
     ]);
 
+    console.log("Step 4");
     const worker = await workerPromise;
     await worker.load();                // load Tesseract core
     await worker.loadLanguage("eng");   // load English
     await worker.initialize("eng");     // initialize with English
 
-
+    console.log("Step 5");
     // OCR for score
     const [scoreData, weaponData1, weaponData2, idData] = await Promise.all([
       worker.recognize(cleaned, "eng"),
@@ -122,7 +126,7 @@ export default {
       worker.recognize(cleaned4, "eng"),
     ]);
 
-
+    console.log("Step 6");
     const scoreText = scoreData.text.replace(/\s+/g, " ").trim();
 
     // OCR for weapon
@@ -146,6 +150,7 @@ export default {
         .toLowerCase();                  // lowercase for easy matching
     }
 
+    console.log("Step 7");
     function isWeaponDetected(weaponName, ocrText) {
       const cleanOCR = normalizeText(ocrText);
       const cleanWeapon = normalizeText(weaponName);
@@ -182,7 +187,7 @@ export default {
       .join("\n");
 
 
-
+      console.log("Step 8");
       let scoreTextCleaned = scoreText;
       scoreTextCleaned = scoreTextCleaned
         .replace(/Goo0se/gi, "Goose")
@@ -213,7 +218,7 @@ export default {
       };
 
       let role = "DPS";
-
+      console.log("Step 9");
       if (
         hasWeapon(["Panacea Fan"]) &&
         hasWeapon(["Soulshade Umbrella"])
@@ -255,7 +260,7 @@ export default {
         • **Score (Goose):** ⭐ **${gooseScore}**`;
 
 
-
+      console.log("Step 10");
       await interaction.editReply(msg);
 
       // -------------------------------------
@@ -280,7 +285,6 @@ export default {
       // Replace with your channel ID
       const LOG_CHANNEL_ID = "1447698250323857622";
 
-    try {
       const logChannel = await interaction.client.channels.fetch(LOG_CHANNEL_ID);
 
       await logChannel.send({
@@ -305,12 +309,12 @@ export default {
         files: [interaction.options.getAttachment("image")]
       });
 
+      await saveSkills(interaction.user.id, ingameName, playerId, role, detected, gooseScore);
+
     } catch (err) {
       console.error("OCR failed:", err);
       await interaction.editReply("❌ OCR failed.");
     }
-
-    await saveSkills(interaction.user.id, ingameName, playerId, role, detected, gooseScore);
   }
 };
 
