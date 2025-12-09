@@ -108,11 +108,12 @@ export default {
         const cleanWeapon = normalizeText(weaponName);
 
         const words = cleanWeapon.split(" ");
-        const pattern = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".{0,5}");
+        const pattern = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".{0,20}"); // allow up to 20 chars between words
         const regex = new RegExp(pattern, "i");
 
         return regex.test(cleanOCR);
       }
+
 
       const detected = martialArts.map(name => {
         const found = isWeaponDetected(name, text);
