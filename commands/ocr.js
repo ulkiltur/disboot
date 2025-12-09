@@ -166,10 +166,16 @@ export default {
         .join("\n");
 
       const msg =
-      `📝 **Detected Info**
-      • **Role:** ${role}
-      ${detectedList ? detectedList + "\n" : ""}
-      • **Score (Goose/Ganso):** ⭐ **${gooseScore}**`;
+        `📝 **Detected Info**
+        • **Role:** ${role}
+        ${detectedList ? detectedList + "\n" : ""}
+        • **Score (Goose/Ganso):** ⭐ **${gooseScore}**
+
+        📄 **OCR Text Detected:**
+        \`\`\`
+        ${text}
+        \`\`\``;
+
 
 
       await interaction.editReply(msg);
