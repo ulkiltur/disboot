@@ -169,7 +169,7 @@ export default {
           "Panacea Fan", "Abanico Panacea", "Éventail Panacée", "Allheilfächer"
         ]) &&
         hasWeapon([
-          "Soulshade Umbrella", "Sombrilla de las Almas", "Parapluie des Âmes", "Seelenschattenschirm"
+          "Ninefold Umbrella", "Sombrilla Primaveral", "Parapluie printanier", "Frühlingsschirm"
         ])
       ) {
         role = "Healer";
