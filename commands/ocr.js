@@ -177,7 +177,7 @@ export default {
           "Panacea Fan", "Abanico Panacea", "Éventail Panacée", "Allheilfächer", "Allheilficher"
         ]) &&
         hasWeapon([
-          "Ninefold Umbrella", "Sombrilla Primaveral", "Parapluie printanier", "Frühlingsschirm", "Frithlingsschirm"
+          "Soulshade Umbrella", "Sombrilla de las Almas", "Parapluie des Âmes", "Seelenschattenschirm"
         ])
       ) {
         role = "Healer";
@@ -196,7 +196,7 @@ export default {
       // Ranged DPS
       else if (
         hasWeapon([
-          "Ninefold Umbrella", "Sombrilla Primaveral", "Parapluie Printanier", "Frühlingsschirm"
+          "Ninefold Umbrella", "Sombrilla Primaveral", "Parapluie Printanier", "Frühlingsschirm", "Frithlingsschirm"
         ]) &&
         hasWeapon([
           "Inkwell Fan", "Abanico del Tintero", "Éventail Encrier", "Tintenfassfächer"
