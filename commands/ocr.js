@@ -350,9 +350,11 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
   "Höllische Zwillingsklingen": "Infernal Twinblades",
   "Strategisches Schwert": "Strategic Sword",
   "Allheilfächer": "Panacea Fan",
+  "Allheilficher": "Panacea Fan",
   "Namenloses Schwert": "Nameless Sword",
   "Seelenschattenschirm": "Soulshade Umbrella",
   "Frühlingsschirm": "Ninefold Umbrella",
+  "Frithlingsschirm": "Ninefold Umbrella",
   "Donnerruf-Klinge": "Thundercry Blade",
   "Tintenfassfächer": "Inkwell Fan",
   "Namenlose Speer": "Nameless Spear", // OCR variant
