@@ -5,6 +5,7 @@ import register from "./commands/register.js";
 import whoami from "./commands/whoami.js";
 import ocr from "./commands/ocr.js";
 import rank from "./commands/rank.js";
+import Tesseract from "tesseract.js";
 
 
 
@@ -87,6 +88,26 @@ client.on("guildCreate", async (guild) => {
     console.error("Failed to register commands for new guild:", err);
   }
 });
+
+const workerPromise = Tesseract.createWorker();
+
+async function cleanupWorker() {
+  try {
+    const worker = await workerPromise;
+    await worker.terminate();
+    console.log("Tesseract worker terminated.");
+  } catch (err) {
+    console.error("Failed to terminate Tesseract worker:", err);
+  }
+}
+
+// Listen for process shutdown
+process.on("SIGINT", cleanupWorker);   // Ctrl+C
+process.on("SIGTERM", cleanupWorker);  // System stop
+process.on("uncaughtException", cleanupWorker); // Optional, in case of crash
+
+// You can also expose the worker to commands
+export { workerPromise };
 
 
 

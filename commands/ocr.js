@@ -1,5 +1,4 @@
 import { SlashCommandBuilder } from "discord.js";
-import Tesseract from "tesseract.js";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import Fuse from "fuse.js";
@@ -7,23 +6,11 @@ import { AttachmentBuilder } from "discord.js";
 import sharp from "sharp";
 import { martialArts } from "../data/weapons.js";
 import { translationMap } from "../data/translationMap.js";
+import { workerPromise } from "../server.js";
 
 const sqlite = sqlite3.verbose();
 
-const workerPromise = Tesseract.createWorker(); 
 
-async function cleanupWorker() {
-  try {
-    const worker = await workerPromise;
-    await worker.terminate();
-    console.log("Tesseract worker terminated.");
-  } catch (err) {
-    console.error("Failed to terminate Tesseract worker:", err);
-  }
-}
-
-process.on("SIGINT", cleanupWorker);   // Ctrl+C
-process.on("SIGTERM", cleanupWorker);  // System stop
 
 export default {
   data: new SlashCommandBuilder()
