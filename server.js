@@ -6,6 +6,7 @@ import whoami from "./commands/whoami.js";
 import ocr from "./commands/ocr.js";
 import rank from "./commands/rank.js";
 import Tesseract from "tesseract.js";
+import hammertime from "./commands/time.js";
 
 
 
@@ -24,7 +25,7 @@ app.listen(PORT, () => console.log(`Render keep-alive server running on port ${P
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
-const commandList = [register, whoami, ocr, rank];
+const commandList = [register, whoami, ocr, rank, hammertime];
 
 // Add commands to collection
 commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));
