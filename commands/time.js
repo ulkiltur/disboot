@@ -41,20 +41,19 @@ export default {
     const short = `<t:${unix}:t>`;
 
     // Calculate hours and minutes difference manually for extra info
-    let diffMs = target.getTime() - now.getTime();
-    const diffHours = Math.floor(diffMs / 1000 / 60 / 60);
-    diffMs -= diffHours * 60 * 60 * 1000;
-    const diffMinutes = Math.floor(diffMs / 1000 / 60);
+    const diffSeconds = unix - Math.floor(now.getTime() / 1000);
+    const diffHours = Math.floor(diffSeconds / 3600);
+    const diffMinutes = Math.floor((diffSeconds % 3600) / 60);
 
     await interaction.reply({
-      content:
+    content:
         `🕒 **Hammertime for ${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} (${target.toLocaleDateString()}):**\n` +
         `• **Full:** ${full}\n` +
         `• **Relative:** ${relative}\n` +
         `• **Short Time:** ${short}\n` +
         `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m\n\n` +
         `This uses your local timezone. If daylight saving applies, Discord will show timestamps adjusted for everyone.`,
-      ephemeral: true
+    ephemeral: true
     });
   }
 };
