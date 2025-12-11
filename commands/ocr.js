@@ -1,14 +1,22 @@
 import { SlashCommandBuilder } from "discord.js";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
-import Fuse from "fuse.js";
-import { AttachmentBuilder } from "discord.js";
-import sharp from "sharp";
 import { martialArts } from "../data/weapons.js";
 import { translationMap } from "../data/translationMap.js";
-import { workerPromise } from "../server.js";
 
 const sqlite = sqlite3.verbose();
+
+async function sendToOcrServer(buffer) {
+  const b64 = buffer.toString("base64");
+  const res = await fetch(server, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image: b64 })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
 
 
 
@@ -35,98 +43,14 @@ export default {
 
     const response = await fetch(image.url);
     const buffer = await response.arrayBuffer();
-    let imageBuffer = Buffer.from(buffer);
-    const meta = await sharp(imageBuffer).metadata();
-    const W = meta.width;
-    const H = meta.height;
-    const scoreRegion = {
-      left: Math.floor(W * 0.70),
-      top: Math.floor(H * 0.08),
-      width: Math.floor(W * 0.22),
-      height: Math.floor(H * 0.12),
-    };
+    const imageBuffer = Buffer.from(buffer);
+    
+    const ocrData = await sendToOcrServer(imageBuffer);
 
-    const weaponRegion1 = {
-      left: Math.floor(W * 0.08),
-      top: Math.floor(H * 0.24),
-      width: Math.floor(W * 0.33),
-      height: Math.floor(H * 0.08),
-    };
-
-    const weaponRegion2 = {
-      left: Math.floor(W * 0.08),
-      top: Math.floor(H * 0.33),
-      width: Math.floor(W * 0.33),
-      height: Math.floor(H * 0.08),
-    };
-
-    const idRegion = {
-      left: Math.floor(W * 0.03),
-      top: Math.floor(H * 0.87),
-      width: Math.floor(W * 0.40),
-      height: Math.floor(H * 0.10),
-    };
-
-    console.log("Step 3");
-    const [scoreBuf, wepBuf, wep2Buf, idBuf] = await Promise.all([
-      sharp(imageBuffer).extract(scoreRegion).toBuffer(),
-      sharp(imageBuffer).extract(weaponRegion1).toBuffer(),
-      sharp(imageBuffer).extract(weaponRegion2).toBuffer(),
-      sharp(imageBuffer).extract(idRegion).toBuffer()
-    ]);
-
-
-    const [cleaned, cleaned2, cleaned3, cleaned4] = await Promise.all([
-      sharp(scoreBuf)
-        .grayscale()
-        .threshold(140)
-        .toBuffer(),
-
-      sharp(wepBuf)
-        .grayscale()
-        .threshold(140)
-        .toBuffer(),
-
-      sharp(wep2Buf)
-      .grayscale()
-      .threshold(140)
-      .toBuffer(),
-
-      sharp(idBuf)
-      .grayscale()
-      .threshold(140)
-      .toBuffer()
-    ]);
-
-    console.log("Step 4");
-    const worker = await workerPromise;
-
-    console.log("Step 5");
-    console.log("Score OCR...");
-    const scoreData = await worker.recognize(cleaned, "eng");
-
-    console.log("Weapon1 OCR...");
-    const weaponData1 = await worker.recognize(cleaned2, "eng");
-
-    console.log("Weapon2 OCR...");
-    const weaponData2 = await worker.recognize(cleaned3, "eng");
-
-    console.log("ID OCR...");
-    const idData = await worker.recognize(cleaned4, "eng");
-
-    console.log(scoreData + weaponData1 + weaponData2 + idData);
-    console.log("Step 6");
-    const scoreText = scoreData.text.replace(/\s+/g, " ").trim();
-
-    // OCR for weapon
-    const weaponText1 = weaponData1.text.replace(/\s+/g, " ").trim();
-
-    const weaponText2 = weaponData2.text.replace(/\s+/g, " ").trim();
-
-    const idText = idData.text.replace(/\s+/g, " ").trim();
-
-    const idMatch = idText.match(/ID[:\s]*([0-9]{10})/i);
-    const playerId = idMatch ? idMatch[1] : null;
+    let scoreText = ocrData.score ?? "";
+    let weaponText1 = ocrData.weapon1 ?? "";
+    let weaponText2 = ocrData.weapon2 ?? "";
+    let idText = ocrData.id ?? "";
 
 
     function normalizeText(str) {
@@ -177,8 +101,7 @@ export default {
 
 
       console.log("Step 8");
-      let scoreTextCleaned = scoreText;
-      scoreTextCleaned = scoreTextCleaned
+      scoreText = scoreText
         .replace(/Goo0se/gi, "Goose")
         .replace(/Coose/gi, "Goose")
         .replace(/0oose/gi, "Goose")
@@ -186,11 +109,11 @@ export default {
         .replace(/Gan5o/gi, "Goose")
         .replace(/Gans/gi, "Goose")
         .replace(/Oie/gi, "Goose")
-        .replace(/Go0se/gi, "Goose");
+        .replace(/Go0se/gi, "Goose")
+        .replace(/G0ose/gi, "Goose");
 
       const scorePattern = /(\d+(?:\.\d+)?)\s*Goose/i;
       const scoreMatch = scoreTextCleaned.match(scorePattern);
-
 
       let gooseScore = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
       gooseScore = gooseScore.toFixed(3);
