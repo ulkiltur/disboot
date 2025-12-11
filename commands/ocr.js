@@ -38,10 +38,10 @@ export default {
     const image = interaction.options.getAttachment("image");
     console.log("Step 2");
     if (!image?.contentType?.startsWith("image/")) {
-      return interaction.reply({ content: "❌ Upload a valid image file.", ephemeral: true });
+      return interaction.reply({ content: "❌ Upload a valid image file.", flags: 64 });
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
 
     const response = await fetch(image.url);
     const buffer = await response.arrayBuffer();

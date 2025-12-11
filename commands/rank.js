@@ -18,7 +18,7 @@ export default {
     if (!ALLOWED_USERS.includes(interaction.user.id)) {
       return interaction.reply({
         content: '❌ You are not allowed to use /rank.',
-        ephemeral: true
+        flags: 64
       });
     }
 

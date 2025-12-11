@@ -61,7 +61,7 @@ export default {
         `• **Short Time:** ${short}\n` +
         `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m\n\n` +
         `The clock time will match the entered UTC offset for everyone.`,
-      ephemeral: true
+      flags: 64
     });
   }
 };

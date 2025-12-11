@@ -70,7 +70,7 @@ client.on('interactionCreate', async (interaction) => {
   } catch (err) {
     console.error(err);
     if (!interaction.replied) {
-      await interaction.reply({ content: '❌ Error executing command', ephemeral: true });
+      await interaction.reply({ content: '❌ Error executing command', flags: 64 });
     }
   }
 });
