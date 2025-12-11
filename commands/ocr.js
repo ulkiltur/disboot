@@ -6,7 +6,7 @@ import { translationMap } from "../data/translationMap.js";
 
 const sqlite = sqlite3.verbose();
 
-const server = process.env.server;
+const server = process.env.server?.trim();
 
 async function sendToOcrServer(buffer) {
   const b64 = buffer.toString("base64");
