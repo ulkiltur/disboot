@@ -115,7 +115,7 @@ export default {
         .replace(/G0ose/gi, "Goose");
 
       const scorePattern = /(\d+(?:\.\d+)?)\s*Goose/i;
-      const scoreMatch = scoreTextCleaned.match(scorePattern);
+      const scoreMatch = scoreText.match(scorePattern);
 
       let gooseScore = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
       gooseScore = gooseScore.toFixed(3);
