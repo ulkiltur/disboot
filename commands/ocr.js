@@ -34,9 +34,9 @@ export default {
 
   async execute(interaction) {
     try {
-    console.log("Step 1: Fetching image");
+
     const image = interaction.options.getAttachment("image");
-    console.log("Step 2");
+
     if (!image?.contentType?.startsWith("image/")) {
       return interaction.reply({ content: "❌ Upload a valid image file.", flags: 64 });
     }
@@ -50,11 +50,17 @@ export default {
     const ocrData = await sendToOcrServer(imageBuffer);
     console.log(ocrData);
 
-    let scoreText  = ocrData.score ?? "";
-    let weaponText1 = ocrData.weapon1 ?? "";
-    let weaponText2 = ocrData.weapon2 ?? "";
-    let idText = ocrData.id ?? "";
-    const playerId = idText ?? null;
+    const fullText = ocrData.text ?? "";
+
+    // reuse your existing logic
+    let scoreText = fullText;
+    let weaponText1 = fullText;
+    let weaponText2 = fullText;
+    let idText = fullText;
+
+    const playerIdMatch = fullText.match(/\b\d{8,}\b/);
+    const playerId = playerIdMatch ? playerIdMatch[0] : null;
+
 
 
 
