@@ -5,6 +5,8 @@ import { martialArts } from "../data/weapons.js";
 import { translationMap } from "../data/translationMap.js";
 import dns from "node:dns";
 import { Agent, fetch } from "undici";
+export const fullData = { text: null, discordId: null };
+
 
 const sqlite = sqlite3.verbose();
 
@@ -45,10 +47,26 @@ export default {
     const buffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(buffer);
     
-    const ocrData = await sendToOcrServer(imageBuffer);
-    console.log(ocrData);
+    await sendToOcrServer(imageBuffer, interaction.discordId.id);
+    await interaction.editReply(`✅ Results will arrive shortly.`);
 
-    const fullText = ocrData.text ?? "";
+    let timer = 0;
+    const maxTime = 420; // 420 seconds = 7 minutes
+
+    // Wait until OCR server fills fullData.text
+    while ((!fullData.text || fullData.discordId !== interaction.user.id) && timer < maxTime) {
+      await new Promise(r => setTimeout(r, 1000));
+      timer++;
+    }
+
+    if (!fullData.text || fullData.discordId !== interaction.user.id) {
+      return interaction.editReply("❌ OCR timed out.");
+    }
+
+    const fullText = fullData.text ?? "";
+
+    fullData.text = null;
+    fullData.discordId = null;
 
     // reuse your existing logic
     let scoreText = fullText;
@@ -251,13 +269,17 @@ async function safeReadJson(res, label = "response") {
 }
 
 
-async function sendToOcrServer(buffer) {
+async function sendToOcrServer(buffer, discordId) {
   const b64 = buffer.toString("base64");
-  const submitRes = await fetch(`${server}/ocr`, { // make sure "/ocr" is included
+
+  const submitRes = await fetch(`${server}/ocr`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image: b64 }),
-    dispatcher: ipv4Agent, // 🔴 THIS is the key
+    body: JSON.stringify({
+       image: b64,
+       discordId
+    }),
+    dispatcher: ipv4Agent, // force IPv4
   });
 
   const submitData = await safeReadJson(submitRes, "/ocr");
@@ -265,36 +287,11 @@ async function sendToOcrServer(buffer) {
   if (!submitRes.ok) {
     throw new Error(submitData.error || "Failed to submit OCR job");
   }
-  const jobId = submitData.job_id;
 
-  const pollInterval = 2000;
-  const maxRetries = 210;
-
-  for (let i = 0; i < maxRetries; i++) {
-  let statusData;
-
-    try {
-      const statusRes = await fetch(`${server}/ocr/status/${jobId}`);
-      statusData = await safeReadJson(statusRes, `/ocr/status/${jobId}`);
-    } catch (e) {
-      console.error(`Polling error for job ${jobId}:`, e.message);
-      await new Promise(r => setTimeout(r, pollInterval));
-      continue;
-    }
-
-    if (statusData.status === "done") {
-      return { text: statusData.result };
-    }
-
-    if (statusData.status === "error") {
-      throw new Error(statusData.result);
-    }
-
-    await new Promise(r => setTimeout(r, pollInterval));
-  }
-
-  throw new Error("OCR job timed out");
+  // Just return the job ID and stop
+  return { jobId: submitData.job_id };
 }
+
 
 
 // -------------------------------------

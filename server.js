@@ -7,6 +7,8 @@ import ocr from "./commands/ocr.js";
 import rank from "./commands/rank.js";
 import hammertime from "./commands/time.js";
 import dns from "node:dns";
+import { fullData } from './commands/ocr.js';
+
 
 dns.setDefaultResultOrder("ipv4first");
 
@@ -18,6 +20,17 @@ dns.setDefaultResultOrder("ipv4first");
 // -------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.post('/ocr/callback', async (req, res) => {
+  const { job_id, discordId, text: ocrText } = req.body;
+
+  // Write OCR text to shared variable
+  fullData.text = ocrText;
+  fullData.discordId = discordId;
+  
+  res.sendStatus(200);
+});
+
 
 app.get('/', (req, res) => res.send('Discord bot is running!'));
 app.listen(PORT, () => console.log(`Render keep-alive server running on port ${PORT}`));
