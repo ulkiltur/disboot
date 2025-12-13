@@ -4,10 +4,18 @@ import { open } from "sqlite";
 import { martialArts } from "../data/weapons.js";
 import { translationMap } from "../data/translationMap.js";
 import dns from "node:dns";
+import { Agent, fetch } from "undici";
 
 const sqlite = sqlite3.verbose();
 
 const server = process.env.server;
+
+const ipv4Agent = new Agent({
+  connect: {
+    family: 4
+  }
+});
+
 
 
 export default {
@@ -249,6 +257,7 @@ async function sendToOcrServer(buffer) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: b64 }),
+    dispatcher: ipv4Agent, // 🔴 THIS is the key
   });
 
   const submitData = await safeReadJson(submitRes, "/ocr");
