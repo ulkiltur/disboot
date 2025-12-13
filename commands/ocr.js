@@ -115,8 +115,7 @@ export default {
       .map(w => `        • ${w.raw}`)
       .join("\n");
 
-
-      console.log("Step 8");
+      /*
       scoreText = scoreText
         .replace(/Goo0se/gi, "Goose")
         .replace(/Coose/gi, "Goose")
@@ -127,12 +126,28 @@ export default {
         .replace(/Oie/gi, "Goose")
         .replace(/Go0se/gi, "Goose")
         .replace(/G0ose/gi, "Goose");
+      */
 
-      const scorePattern = /(\d+(?:\.\d+)?)\s*Goose/i;
+      const scorePattern = /(\d+(?:\.\d+)?)(?:\s*Goose)?/i;
       const scoreMatch = scoreText.match(scorePattern);
 
-      let gooseScore = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+      let gooseScore = 0;
+
+      if (scoreMatch) {
+        let raw = scoreMatch[1];
+        
+        if (raw.includes(".")) {
+          // Already a decimal, keep as-is
+          gooseScore = parseFloat(raw);
+        } else {
+          // Integer → divide by 10000
+          gooseScore = parseFloat(raw) / 10000;
+        }
+      }
+
       gooseScore = gooseScore.toFixed(3);
+      console.log(gooseScore);
+
 
 
       // -------------------------------------
