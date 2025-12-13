@@ -57,9 +57,6 @@ export default {
       return interaction.editReply("❌ OCR timed out.");
     }
 
-    fullData.text = null;
-    fullData.discordId = null;
-
     // reuse your existing logic
     let scoreText = fullText;
     let weaponText1 = fullText;
