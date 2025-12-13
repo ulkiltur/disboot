@@ -5,7 +5,7 @@ import { martialArts } from "../data/weapons.js";
 import { translationMap } from "../data/translationMap.js";
 import dns from "node:dns";
 import { Agent, fetch } from "undici";
-export const fullData = { text: null };
+import { ocrWaiters } from '../server.js';
 
 
 const sqlite = sqlite3.verbose();
@@ -50,20 +50,12 @@ export default {
     await sendToOcrServer(imageBuffer, interaction.user.id);
     await interaction.editReply(`✅ Results will arrive shortly.`);
 
-    let timer = 0;
-    const maxTime = 420; // 420 seconds = 7 minutes
-
-    // Wait until OCR server fills fullData.text
-    while ((!fullData.text || fullData.discordId !== interaction.user.id) && timer < maxTime) {
-      await new Promise(r => setTimeout(r, 1000));
-      timer++;
-    }
-
-    if (!fullData.text || fullData.discordId !== interaction.user.id) {
+    let fullText;
+    try {
+      fullText = await waitForOcr(interaction.user.id);
+    } catch {
       return interaction.editReply("❌ OCR timed out.");
     }
-
-    const fullText = fullData.text ?? "";
 
     fullData.text = null;
     fullData.discordId = null;
@@ -256,6 +248,22 @@ export default {
     }
   }
 };
+
+function waitForOcr(discordId, timeoutMs = 420_000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      ocrWaiters.delete(discordId);
+      reject(new Error("OCR timeout"));
+    }, timeoutMs);
+
+    ocrWaiters.set(discordId, {
+      resolve: (text) => {
+        clearTimeout(timer);
+        resolve(text);
+      }
+    });
+  });
+}
 
 async function safeReadJson(res, label = "response") {
   const raw = await res.text(); // read body ONCE
