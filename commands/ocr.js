@@ -48,7 +48,7 @@ export default {
     const imageBuffer = Buffer.from(buffer);
     
     await sendToOcrServer(imageBuffer, interaction.user.id);
-    await interaction.editReply(`✅ Results will arrive shortly.`);
+    await interaction.editReply(`✅ Results will arrive shortly (5-7min), you can check them with /whoami`);
 
     let fullText;
     try {
@@ -181,15 +181,6 @@ export default {
         role = "DPS";
       }
 
-      const msg =
-        `📝 **Detected Info**
-        • **Role:** ${role}
-        ${detectedList ? detectedList + "\n" : ""}
-        • **Score (Goose):** ⭐ **${gooseScore}**`;
-
-
-      console.log("Step 10");
-      await interaction.editReply(msg);
 
       // -------------------------------------
       // Save skills
@@ -220,18 +211,9 @@ export default {
       **In-Game:** ${ingameName ?? "Unknown"}  
       **Role:** ${role}  
       **Score:** ⭐ ${gooseScore}
-      📄 **OCR Text Detected (Score Region):**
+      📄 **OCR Text Detected:**
       \`\`\`
       ${scoreText}
-      \`\`\`
-      📄 **OCR Text Detected (Weapons):**
-      \`\`\`
-      ${weaponText1}
-      ${weaponText2}
-      \`\`\`
-      📄 **OCR Text Detected (ID Region):**
-      \`\`\`
-      ${idText}
       \`\`\``
       ,
         files: [interaction.options.getAttachment("image")]
