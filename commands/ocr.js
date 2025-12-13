@@ -10,7 +10,7 @@ const server = process.env.server?.trim();
 
 async function sendToOcrServer(buffer) {
   const b64 = buffer.toString("base64");
-  const submitRes = await fetch(`${server}/ocr`, {
+  const submitRes = await fetch(`${server}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: b64 }),
