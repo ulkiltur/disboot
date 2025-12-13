@@ -210,7 +210,7 @@ export default {
         content: `📸 **New Goose Upload**  
       **In-Game:** ${ingameName ?? "Unknown"}  
       **Role:** ${role}  
-      **Weapon:** 
+      **Weapons:** ${detectedList || "❌ None detected"}
       **Score:** ⭐ ${gooseScore}
       📄 **OCR Text Detected:**
       \`\`\`
