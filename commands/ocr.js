@@ -47,7 +47,7 @@ export default {
     const buffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(buffer);
     
-    await sendToOcrServer(imageBuffer, interaction.discordId.id);
+    await sendToOcrServer(imageBuffer, interaction.user.id);
     await interaction.editReply(`✅ Results will arrive shortly.`);
 
     let timer = 0;
