@@ -19,6 +19,7 @@ dns.setDefaultResultOrder("ipv4first");
 // Fake port server for Render
 // -------------------------------
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 app.post('/ocr/callback', async (req, res) => {
@@ -27,6 +28,7 @@ app.post('/ocr/callback', async (req, res) => {
   // Write OCR text to shared variable
   fullData.text = ocrText;
   fullData.discordId = discordId;
+  console.log("OCR callback received:", req.body);
   
   res.sendStatus(200);
 });
