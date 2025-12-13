@@ -48,7 +48,7 @@ export default {
     const imageBuffer = Buffer.from(buffer);
     
     await sendToOcrServer(imageBuffer, interaction.user.id);
-    await interaction.editReply(`✅ Results will arrive shortly (5-7min), you can check them with /whoami`);
+    await interaction.editReply(`✅ Check your stats with /whoami in few min`);
 
     let fullText;
     try {
@@ -210,6 +210,7 @@ export default {
         content: `📸 **New Goose Upload**  
       **In-Game:** ${ingameName ?? "Unknown"}  
       **Role:** ${role}  
+      **Weapon:** 
       **Score:** ⭐ ${gooseScore}
       📄 **OCR Text Detected:**
       \`\`\`
