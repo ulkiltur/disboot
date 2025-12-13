@@ -10,7 +10,7 @@ const server = process.env.server?.trim();
 
 async function sendToOcrServer(buffer) {
   const b64 = buffer.toString("base64");
-  const submitRes = await fetch(`${server}/ocr`, {
+  const submitRes = await fetch(`${server}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: b64 }),
@@ -32,7 +32,7 @@ async function sendToOcrServer(buffer) {
   const maxRetries = 210;
 
   for (let i = 0; i < maxRetries; i++) {
-    const statusRes = await fetch(`${server}/ocr/status/${jobId}`);
+    const statusRes = await fetch(`${server}/status/${jobId}`);
     let statusData;
     try {
       statusData = await statusRes.json();
