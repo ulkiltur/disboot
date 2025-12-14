@@ -48,6 +48,9 @@ export default {
     const relative = `<t:${unix}:R>`;
     const short = `<t:${unix}:t>`;
 
+    const raw = `<t:${unix}:F>`;
+    const rawCode = `\`<t:${unix}:F>\``;
+
     // Time until hammertime
     const diffSeconds = unix - Math.floor(now.getTime() / 1000);
     const diffHours = Math.floor(diffSeconds / 3600);
@@ -55,14 +58,15 @@ export default {
 
     await interaction.reply({
       content:
-        `🕒 **Hammertime for ${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} (UTC${tzOffset >= 0 ? '+' : ''}${tzOffset}):**\n\n` +
+        `🕒 **Hammertime for ${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")} (UTC${tzOffset >= 0 ? "+" : ""}${tzOffset})**\n\n` +
         `• **Rendered:** ${raw}\n` +
         `• **Copyable:** ${rawCode}\n\n` +
         `• **Relative:** <t:${unix}:R>\n` +
         `• **Short:** <t:${unix}:t>\n\n` +
-        `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m\n\n` +
-        `Copy the code version to reuse the timestamp.`,
-      flags: 64
+        `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m`,
+      flags: 64 // ephemeral
     });
 
   }

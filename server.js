@@ -93,6 +93,33 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.reply({ content: '❌ Error executing command', flags: 64 });
     }
   }
+
+  if (!interaction.isButton()) return;
+
+  const userId = interaction.user.id;
+
+  if (interaction.customId === "dm_accept") {
+    await db.run(
+      `INSERT INTO dm_consent (user_id, consent, agreed_at)
+       VALUES (?, 1, ?)
+       ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+      userId,
+      Date.now(),
+      Date.now()
+    );
+
+    await interaction.update({
+      content: "✅ You’re now subscribed to DM reminders!",
+      components: []
+    });
+  }
+
+  if (interaction.customId === "dm_decline") {
+    await interaction.update({
+      content: "❌ No problem — you won’t receive any DMs.",
+      components: []
+    });
+  }
 });
 
 client.on("guildCreate", async (guild) => {
