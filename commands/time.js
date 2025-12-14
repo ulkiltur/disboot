@@ -55,13 +55,15 @@ export default {
 
     await interaction.reply({
       content:
-        `🕒 **Hammertime for ${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} (UTC${tzOffset >= 0 ? '+' : ''}${tzOffset}):**\n` +
-        `• **Full:** ${full}\n` +
-        `• **Relative:** ${relative}\n` +
-        `• **Short Time:** ${short}\n` +
+        `🕒 **Hammertime for ${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} (UTC${tzOffset >= 0 ? '+' : ''}${tzOffset}):**\n\n` +
+        `• **Rendered:** ${raw}\n` +
+        `• **Copyable:** ${rawCode}\n\n` +
+        `• **Relative:** <t:${unix}:R>\n` +
+        `• **Short:** <t:${unix}:t>\n\n` +
         `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m\n\n` +
-        `The clock time will match the entered UTC offset for everyone.`,
+        `Copy the code version to reuse the timestamp.`,
       flags: 64
     });
+
   }
 };
