@@ -45,8 +45,8 @@ export default {
 
     // Discord timestamps
     const full = `<t:${unix}:F>`;
-    const relative = `<t:${unix}:R>`;
-    const short = `<t:${unix}:t>`;
+    const relative = `\`<t:${unix}:R>\``;
+    const short = `\`<t:${unix}:t>\``;
 
     const raw = `<t:${unix}:F>`;
     const rawCode = `\`<t:${unix}:F>\``;
@@ -61,10 +61,12 @@ export default {
         `🕒 **Hammertime for ${hour.toString().padStart(2, "0")}:${minute
           .toString()
           .padStart(2, "0")} (UTC${tzOffset >= 0 ? "+" : ""}${tzOffset})**\n\n` +
-        `• **Rendered:** ${raw}\n` +
+        `• **Full:** ${raw}\n` +
         `• **Copyable:** ${rawCode}\n\n` +
         `• **Relative:** <t:${unix}:R>\n` +
+        `• **Copyable:** ${relative}\n\n` +
         `• **Short:** <t:${unix}:t>\n\n` +
+        `• **Copyable:** ${short}\n\n` +
         `• **Time until hammertime:** ${diffHours}h ${diffMinutes}m`,
       flags: 64 // ephemeral
     });
