@@ -120,6 +120,22 @@ client.on('interactionCreate', async (interaction) => {
       components: []
     });
   }
+  
+  const threadIDs = ["1445444475483721799", "1450101670418579527", "1447476754930204853", "1449797536905691298", "1446129574378475603",
+    "1446639680413237407", "1448422081531347067", "1445787197503439050", "1446761409169063998", "1447239208128479303", "1445465627761574050",
+    "1445473630279700543", "1445817026735247471"];
+    for (const id of threadIDs) {
+      const thread = await client.channels.fetch(id);
+      await thread.setAutoArchiveDuration(0);
+    }
+
+  const threadIDs2 = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
+    for (const id of threadIDs2) {
+      const thread = await client.channels.fetch(id);
+      await thread.setArchived(true);
+    }
+
+
 });
 
 client.on("guildCreate", async (guild) => {
