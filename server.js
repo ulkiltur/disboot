@@ -132,6 +132,8 @@ client.on('interactionCreate', async (interaction) => {
   const threadIDs2 = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
     for (const id of threadIDs2) {
       const thread = await client.channels.fetch(id);
+      console.log(thread.locked, thread.archived);
+      await thread.setLocked(false);
       await thread.setArchived(true);
     }
 
