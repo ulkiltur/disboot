@@ -144,7 +144,7 @@ client.on("guildCreate", async (guild) => {
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  const activateThreads = ["1445444475483721799", "1450101670418579527", "1447476754930204853", "1449797536905691298", "1446129574378475603",
+  /*const activateThreads = ["1445444475483721799", "1450101670418579527", "1447476754930204853", "1449797536905691298", "1446129574378475603",
     "1446639680413237407", "1448422081531347067", "1445787197503439050", "1446761409169063998", "1447239208128479303", "1445465627761574050",
     "1445473630279700543", "1445817026735247471"];
     for (const id of activateThreads) {
@@ -178,7 +178,7 @@ client.once('ready', async () => {
     } catch (e) {
       console.error(`Failed to archive ${id}`, e.message);
     }
-  }
+  }*/
 });
 
 client.login(process.env.TOKEN);
