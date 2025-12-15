@@ -31,9 +31,10 @@ export default {
     });
 
     try {
-      const roles = ["Healer", "Tank", "Ranged DPS", "Melee DPS"];
+      const roles = ["DPS", "Human Health Potion (Pure Healer)", "Aggro Sponge (Pure Tank)", "Snipes-From-Another-Map (Ranged DPS)",
+      "Sir Not Dying Today (Tank + Healer)", "Doctor Damage (Healer + DPS)"];
       const embed = new EmbedBuilder()
-        .setTitle("🏆 WWM Top Rankings")
+        .setTitle("🏆 Warden Top Rankings")
         .setColor("Gold")
         .setTimestamp();
 
