@@ -255,7 +255,7 @@ cron.schedule(cronTime, async () => { // runs every minute
       user.id
     );
 
-    if (!consentRow1 || consentRow1.consent !== 1) return;
+    if (consentRow1.consent !== 1) return;
 
     const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
 
@@ -308,7 +308,7 @@ cron.schedule("* * * * *", async () => {
                 "SELECT consent FROM dm_consent WHERE user_id = ?",
                 member.id
               );
-              if (!consentRow || consentRow.consent !== 1) continue;
+              if (consentRow.consent !== 1) continue;
 
               await member.send(
                 `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!`
