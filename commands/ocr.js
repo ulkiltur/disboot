@@ -394,13 +394,3 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
 
   await db.close();
 }
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, entry] of userRateLimits) {
-    entry.timestamps = entry.timestamps.filter(t => now - t < WINDOW_MS);
-    if (entry.timestamps.length === 0 && entry.running === 0) {
-      userRateLimits.delete(id);
-    }
-  }
-}, 60_000);
