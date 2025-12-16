@@ -259,8 +259,8 @@ setTimeout(async () => {
       user2.id
     );
 
-    if (!consentRow1 || consentRow1.consent === 0) return;
-    if (!consentRow2 || consentRow2.consent === 0) return;
+    if (!consentRow1 || consentRow1.consent !== 1) return;
+    if (!consentRow2 || consentRow2.consent !== 1) return;
 
     const currentDay = new Date().toLocaleDateString("en-US", {
       weekday: "long"
@@ -328,7 +328,7 @@ cron.schedule("* * * * *", async () => {
                 "SELECT consent FROM dm_consent WHERE user_id = ?",
                 member.id
               );
-              if (!consentRow || consentRow.consent === 0) continue;
+              if (!consentRow || consentRow.consent !== 1) continue;
 
               await member.send(
                 `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!`
