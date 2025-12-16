@@ -18,6 +18,11 @@ const REMINDER_MINUTES_BEFORE = 15;
 const MY_USER_ID = "1416909595955302431";
 const leader_ID = "320573579961958402";
 
+const db = await open({
+      filename: "/var/data/users.sqlite",
+      driver: sqlite3.Database,
+  });
+
 const now = new Date();
 now.setMinutes(now.getMinutes() + 10);
 
@@ -29,11 +34,6 @@ const cronTime = `${runAtMinutes} ${runAtHour} * * *`;
 console.log(`✅ Test reminder scheduled at ${now.toLocaleTimeString()}`);
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
-const db = await open({
-  filename: "./data/users.sqlite",  // adjust path
-  driver: sqlite3.Database,
-});
 
 export const ocrWaiters = new Map();
 
@@ -283,11 +283,6 @@ cron.schedule("* * * * *", async () => {
   const now = new Date();
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" }); // Monday, Tuesday...
   const currentUnix = Math.floor(now.getTime() / 1000);
-
-  const db = await open({
-        filename: "/var/data/users.sqlite",
-        driver: sqlite3.Database,
-    });
 
   try {
     // Fetch all events
