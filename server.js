@@ -242,16 +242,6 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-cron.schedule(cronTime, async () => {
-  try {
-    const user = await client.users.fetch(MY_USER_ID);
-    await user.send("⏰ Test: This is your 10-minute reminder!");
-    console.log("✅ Test reminder sent!");
-  } catch (err) {
-    console.error("❌ Failed to send test reminder:", err);
-  }
-});
-
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" }); // Monday, Tuesday...
@@ -285,7 +275,7 @@ cron.schedule("* * * * *", async () => {
               if (!consentRow || consentRow.consent !== 1) continue;
 
               await member.send(
-                `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:F> today!`
+                `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!`
               );
             }
           }
