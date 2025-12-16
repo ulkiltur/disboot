@@ -256,6 +256,7 @@ client.once('ready', async () => {
 cron.schedule(cronTime, async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
+    const user2 = await client.users.fetch(leader_ID);
 
 
     const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
@@ -275,6 +276,7 @@ cron.schedule(cronTime, async () => { // runs every minute
       message += `\nTurn off reminders with /cancel_reminders`;
 
       await user.send(message);
+      await user2.send(message);
     }
   } catch (err) {
     console.error("❌ Failed to send event reminders:", err);
