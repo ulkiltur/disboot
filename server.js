@@ -343,16 +343,19 @@ cron.schedule("* * * * *", async () => {
             member.id
           );
 
-          if (consentRow.consent !== 0) {
-            await db.run(
-              `INSERT INTO dm_consent (user_id, consent, agreed_at)
-               VALUES (?, 1, ?)
-               ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
-              member.id,
-              Date.now(),
-              Date.now()
-            );
+          if (consentRow && consentRow.consent === 0) {
+            continue;
           }
+
+          await db.run(
+            `INSERT INTO dm_consent (user_id, consent, agreed_at)
+              VALUES (?, 1, ?)
+              ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+            member.id,
+            Date.now(),
+            Date.now()
+          );
+          
         }
       }
     }
