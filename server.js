@@ -243,7 +243,7 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+const FIVE_MINUTES_MS = 1 * 60 * 1000;
 
 setTimeout(async () => {
   try {
@@ -253,7 +253,7 @@ setTimeout(async () => {
                 "SELECT consent FROM dm_consent WHERE user_id = ?",
                 member.id
               );
-    if (consentRow.consent === 0) return;
+    if (!consentRow || consentRow.consent === 0) return;
 
     const event = await db.all(
       `SELECT * FROM events WHERE day = Tuesday`
