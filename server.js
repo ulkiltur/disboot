@@ -235,44 +235,41 @@ client.on("guildCreate", async (guild) => {
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  const activateThreads = ["1445444475483721799", "1450101670418579527", "1447476754930204853", "1449797536905691298", "1446129574378475603",
-    "1446639680413237407", "1448422081531347067", "1445787197503439050", "1446761409169063998", "1447239208128479303", "1445465627761574050",
-    "1445473630279700543", "1445817026735247471"];
-    for (const id of activateThreads) {
+  const guild = await client.guilds.fetch("1445401393643917366");
+
+  // Fetch all members
+  await guild.members.fetch();
+
+  // Filter members safely by role
+  const membersWithRole = [];
+  for (const member of guild.members.cache.values()) {
     try {
-      const thread = await client.channels.fetch(id);
-
-      if (!thread?.isThread()) continue;
-
-      await thread.setAutoArchiveDuration(10080);
-      console.log(`⏳ Set keep-alive for ${id}`);
-    } catch (e) {
-      console.error(`Failed to archive ${id}`, e.message);
+      const fullMember = await guild.members.fetch(member.id); // ensure full data
+      if (fullMember.roles.cache.has(roleId) && !fullMember.user.bot) {
+        membersWithRole.push(fullMember);
+      }
+    } catch (err) {
+      console.error(`Failed to fetch member ${member.id}:`, err.message);
     }
   }
 
-  const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
+  console.log(`Found ${membersWithRole.length} members with role`);
 
-  const guild = await client.guilds.fetch("1445401393643917366");
+  // Insert into DB
+  for (const member of membersWithRole) {
+    await db.run(
+      `INSERT INTO dm_consent (user_id, consent, agreed_at)
+       VALUES (?, 1, ?)
+       ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+      member.id,
+      Date.now(),
+      Date.now()
+    );
+  }
 
-  await guild.members.fetch(); // populates guild.members.cache
-  
-  const membersWithRole = guild.members.cache.filter(member =>
-    member.roles.cache.has(roleId)
-  );
-
-  for (const member of membersWithRole.values()) {
-  await db.run(
-    `INSERT INTO dm_consent (user_id, consent, agreed_at)
-     VALUES (?, 1, ?)
-     ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
-    member.id,
-    Date.now(),
-    Date.now()
-  );
-}
-
+  console.log("✅ Members added to dm_consent");
 });
+
 
 /*
 cron.schedule(cronTime, async () => { // runs every minute
