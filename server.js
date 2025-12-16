@@ -243,31 +243,32 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 9 * 60 * 1000;
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 setTimeout(async () => {
   try {
     const user = await client.users.fetch(MY_USER_ID);
     const user2 = await client.users.fetch(leader_ID);
-    const consentRow = await db.get(
-                "SELECT consent FROM dm_consent WHERE user_id = ?",
-                member.id
-              );
-    if (!consentRow || consentRow.consent === 0) return;
-
-    const event = await db.all(
-      `SELECT * FROM events WHERE day = Tuesday`
+    const consentRow1 = await db.get(
+      "SELECT consent FROM dm_consent WHERE user_id = ?",
+      user.id
     );
 
-    if (!event) return;
+    const consentRow2 = await db.get(
+      "SELECT consent FROM dm_consent WHERE user_id = ?",
+      user2.id
+    );
 
-    const eventTime = event.time_unix;
+    // Skip sending if they didn’t consent
+    if (!consentRow1 || consentRow1.consent === 0) return;
+    if (!consentRow2 || consentRow2.consent === 0) return;
 
     await user.send(
       `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!\n` +
       `You can turn off reminders using Warden bot:\n` +
       `- 1st: /register\n- 2nd: /cancel_reminders`
     );
+
     await user2.send(
       `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!\n` +
       `You can turn off reminders using Warden bot:\n` +
