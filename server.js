@@ -254,6 +254,8 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 
   const guild = await client.guilds.fetch("1445401393643917366");
+
+  await guild.members.fetch(); // populates guild.members.cache
   
   const membersWithRole = guild.members.cache.filter(member =>
     member.roles.cache.has(roleId)
@@ -329,6 +331,8 @@ cron.schedule("* * * * *", async () => {
 
     if (currentUnix >= oneHourBefore && currentUnix < oneHourBefore + 60) {
       const roleId = "ROLE_ID_HERE";
+
+      await guild.members.fetch(); // populates guild.members.cache
 
       for (const guild of client.guilds.cache.values()) {
         const membersWithRole = guild.members.cache.filter(member =>
