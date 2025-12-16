@@ -243,7 +243,7 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+const FIVE_MINUTES_MS = 4 * 60 * 1000;
 
 setTimeout(async () => {
   try {
@@ -283,7 +283,10 @@ cron.schedule("* * * * *", async () => {
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" }); // Monday, Tuesday...
   const currentUnix = Math.floor(now.getTime() / 1000);
 
-  const db = await open({ filename: "./events.sqlite", driver: sqlite3.Database });
+  const db = await open({
+        filename: "/var/data/users.sqlite",
+        driver: sqlite3.Database,
+    });
 
   try {
     // Fetch all events
