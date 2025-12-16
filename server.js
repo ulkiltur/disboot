@@ -35,6 +35,8 @@ console.log(`✅ Test reminder scheduled at ${now.toLocaleTimeString()}`);
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
+const roleId = "Goose";
+
 export const ocrWaiters = new Map();
 
 export const userRateLimits = new Map();
@@ -250,6 +252,25 @@ client.once('ready', async () => {
   }
 
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
+
+  const guild = await client.guilds.fetch("1445401393643917366");
+  await guild.members.fetch();
+  
+  const membersWithRole = guild.members.cache.filter(member =>
+    member.roles.cache.has(roleId)
+  );
+
+  for (const member of membersWithRole.values()) {
+  await db.run(
+    `INSERT INTO dm_consent (user_id, consent, agreed_at)
+     VALUES (?, 1, ?)
+     ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+    member.id,
+    Date.now(),
+    Date.now()
+  );
+}
+
 });
 
 /*
