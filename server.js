@@ -125,7 +125,7 @@ app.listen(PORT, () => console.log(`Render keep-alive server running on port ${P
 // -------------------------------
 // Discord Bot Setup
 // -------------------------------
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 
 client.commands = new Collection();
 const commandList = [register, whoami, ocr, rank, hammertime, set_reminder, cancel_reminders, createEvent];
