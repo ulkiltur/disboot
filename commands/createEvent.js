@@ -29,9 +29,46 @@ export default {
         .setRequired(true)
     )
     .addStringOption(option =>
-      option.setName("days")
-        .setDescription("Select the days (comma-separated, e.g., Monday,Wednesday)")
+      option.setName("day1")
+        .setDescription("Select day 1")
         .setRequired(true)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day2")
+        .setDescription("Select day 2 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day3")
+        .setDescription("Select day 3 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day4")
+        .setDescription("Select day 4 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day5")
+        .setDescription("Select day 5 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day6")
+        .setDescription("Select day 6 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
+    )
+    .addStringOption(option =>
+      option.setName("day7")
+        .setDescription("Select day 7 (optional)")
+        .setRequired(false)
+        .addChoices(...dayChoices)
     )
     .addStringOption(option =>
       option.setName("time")
@@ -61,7 +98,7 @@ export default {
     const repeatWeekly = interaction.options.getBoolean("repeat_weekly");
 
     // Extract UNIX timestamp from <t:unix:F>
-    const unixMatch = timeInput.match(/<t:(\d+):F>/);
+    const unixMatch = timeInput.match(/<t:(\d+):t>/);
     if (!unixMatch) {
       return interaction.editReply("❌ Invalid time format. Must be <t:unix:F>");
     }
@@ -96,6 +133,6 @@ export default {
 
     await db.close();
 
-    await interaction.editReply(`✅ Event **${eventName}** registered for **${daysInput}** at <t:${unixTime}:F> ${repeatWeekly ? "(repeats weekly)" : ""}`);
+    await interaction.editReply(`✅ Event **${eventName}** registered for **${daysInput}** at <t:${unixTime}:t> ${repeatWeekly ? "(repeats weekly)" : ""}`);
   }
 };
