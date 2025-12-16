@@ -254,7 +254,6 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 
   const guild = await client.guilds.fetch("1445401393643917366");
-  await guild.members.fetch();
   
   const membersWithRole = guild.members.cache.filter(member =>
     member.roles.cache.has(roleId)
@@ -316,10 +315,46 @@ cron.schedule("* * * * *", async () => {
     const events = await db.all(`SELECT * FROM events`);
 
     // Filter events scheduled for today
-    const eventsToday = events.filter(event => {
-    const eventDays = event.day.split(",").map(d => d.trim());
-      return eventDays.includes(currentDay) && event.reminder_sent === 0;
-    });
+    const eventsToday = events
+      .filter(ev => {
+        const eventDays = ev.day.split(",").map(d => d.trim());
+        return eventDays.includes(currentDay);
+      })
+      .sort((a, b) => a.time_unix - b.time_unix); // sort by time
+
+    if (eventsToday.length === 0) return;
+
+    const firstEvent = eventsToday[0];
+    const oneHourBefore = firstEvent.time_unix - 60 * 60; // 1h before
+
+    if (currentUnix >= oneHourBefore && currentUnix < oneHourBefore + 60) {
+      const roleId = "ROLE_ID_HERE";
+
+      for (const guild of client.guilds.cache.values()) {
+        const membersWithRole = guild.members.cache.filter(member =>
+          member.roles.cache.has(roleId)
+        );
+
+        for (const member of membersWithRole.values()) {
+          // Only add if they haven't opted out
+          const consentRow = await db.get(
+            "SELECT consent FROM dm_consent WHERE user_id = ?",
+            member.id
+          );
+
+          if (consentRow.consent !== 0) {
+            await db.run(
+              `INSERT INTO dm_consent (user_id, consent, agreed_at)
+               VALUES (?, 1, ?)
+               ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+              member.id,
+              Date.now(),
+              Date.now()
+            );
+          }
+        }
+      }
+    }
 
     for (const event of eventsToday) {
       const eventTime = event.time_unix;
