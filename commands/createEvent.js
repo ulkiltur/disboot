@@ -92,6 +92,11 @@ export default {
 
     await interaction.deferReply({ ephemeral: true });
 
+    const db = await open({
+        filename: "/var/data/users.sqlite",
+        driver: sqlite3.Database,
+    });
+
     const eventName = interaction.options.getString("event_name");
     const daysInput = interaction.options.getString("days"); // e.g., "Monday,Wednesday"
     const timeInput = interaction.options.getString("time");   // <t:unix:F>
@@ -103,12 +108,6 @@ export default {
       return interaction.editReply("❌ Invalid time format. Must be <t:unix:F>");
     }
     const unixTime = parseInt(unixMatch[1], 10);
-
-    // Open DB
-    const db = await open({
-      filename: "./events.sqlite",
-      driver: sqlite3.Database
-    });
 
     // Create table if it doesn't exist
     await db.exec(`
