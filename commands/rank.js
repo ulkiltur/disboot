@@ -73,8 +73,6 @@ export default {
     } catch (err) {
       console.error("Failed to fetch rankings:", err);
       await interaction.editReply("❌ Failed to fetch rankings.");
-    } finally {
-      await db.close();
     }
   },
 };

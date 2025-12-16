@@ -119,8 +119,6 @@ export default {
       repeatWeekly ? 1 : 0
     );
 
-    await db.close();
-
     await interaction.editReply(`✅ Event **${eventName}** registered for **${daysInput}** at <t:${unixTime}:t> ${repeatWeekly ? "(repeats weekly)" : ""}`);
   }
 };

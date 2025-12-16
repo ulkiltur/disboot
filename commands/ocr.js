@@ -354,7 +354,6 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
 
   if (!weapon1 && !weapon2) {
     console.log(`No weapons detected for ${ingameName} (${discordId}), skipping save.`);
-    await db.close();
     return;
   }
 
@@ -391,6 +390,4 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
       score
     );
   }
-
-  await db.close();
 }
