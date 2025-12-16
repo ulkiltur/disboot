@@ -291,22 +291,20 @@ cron.schedule("* * * * *", async () => {
 
     // Filter events scheduled for today
     const eventsToday = events.filter(event => {
-      const eventDays = event.days.split(",").map(d => d.trim());
-      return eventDays.includes(currentDay);
+    const eventDays = event.days.split(",").map(d => d.trim());
+      return eventDays.includes(currentDay) && event.reminder_sent === 0;
     });
 
     for (const event of eventsToday) {
       const eventTime = event.time_unix;
       const reminderTime = eventTime - REMINDER_MINUTES_BEFORE * 60;
 
-      // Check if it's time to send the reminder (within the minute)
       if (currentUnix >= reminderTime && currentUnix < reminderTime + 60) {
         try {
           for (const guild of client.guilds.cache.values()) {
             for (const member of guild.members.cache.values()) {
               if (member.user.bot) continue;
 
-              // Check if member opted in
               const consentRow = await db.get(
                 "SELECT consent FROM dm_consent WHERE user_id = ?",
                 member.id
@@ -318,11 +316,18 @@ cron.schedule("* * * * *", async () => {
               );
             }
           }
+
+          // Mark event reminder as sent
+          await db.run(
+            "UPDATE events SET reminder_sent = 1 WHERE id = ?",
+            event.id
+          );
         } catch (err) {
           console.error("Failed to send reminder:", err);
         }
       }
     }
+
   } catch (err) {
     console.error("Failed to fetch events:", err);
   } finally {

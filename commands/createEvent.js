@@ -35,6 +35,16 @@ export default {
         .addChoices(...dayChoices)
     )
     .addStringOption(option =>
+      option.setName("time")
+        .setDescription("Time in format <t:unix:F>")
+        .setRequired(true)
+    )
+    .addBooleanOption(option =>
+      option.setName("repeat_weekly")
+        .setDescription("Does the event repeat every week?")
+        .setRequired(true)
+    )
+    .addStringOption(option =>
       option.setName("day2")
         .setDescription("Select day 2 (optional)")
         .setRequired(false)
@@ -69,17 +79,8 @@ export default {
         .setDescription("Select day 7 (optional)")
         .setRequired(false)
         .addChoices(...dayChoices)
-    )
-    .addStringOption(option =>
-      option.setName("time")
-        .setDescription("Time in format <t:unix:F>")
-        .setRequired(true)
-    )
-    .addBooleanOption(option =>
-      option.setName("repeat_weekly")
-        .setDescription("Does the event repeat every week?")
-        .setRequired(true)
     ),
+    
 
   async execute(interaction) {
 
