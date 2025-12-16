@@ -8,13 +8,5 @@ fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new Database(dbPath);
 
-// Create table if not exists
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
-    discord_id TEXT PRIMARY KEY,
-    ingame_name TEXT NOT NULL
-  )
-`).run();
-
 export default db;
 
