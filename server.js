@@ -24,7 +24,7 @@ const db = await open({
   });
 
 const now = new Date();
-now.setMinutes(now.getMinutes() + 2);
+now.setMinutes(now.getMinutes() + 1);
 
 const runAtMinutes = now.getMinutes();
 const runAtHour = now.getHours();
@@ -244,7 +244,7 @@ client.once('ready', async () => {
 });
 
 
-cron.schedule("* * * * *", async () => { // runs every minute
+cron.schedule(cronTime, async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
     const user2 = await client.users.fetch(leader_ID);
