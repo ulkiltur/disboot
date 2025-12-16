@@ -248,20 +248,14 @@ client.once('ready', async () => {
 cron.schedule(cronTime, async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
-    const user2 = await client.users.fetch(leader_ID);
 
     // fetch consent rows
     const consentRow1 = await db.get(
       "SELECT consent FROM dm_consent WHERE user_id = ?",
       user.id
     );
-    const consentRow2 = await db.get(
-      "SELECT consent FROM dm_consent WHERE user_id = ?",
-      user2.id
-    );
 
     if (!consentRow1 || consentRow1.consent !== 1) return;
-    if (!consentRow2 || consentRow2.consent !== 1) return;
 
     const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
 
@@ -274,11 +268,6 @@ cron.schedule(cronTime, async () => { // runs every minute
       const eventTime = ev.time_unix;
 
       await user.send(
-        `⏰ Reminder: Event **${ev.event_name}** starts at <t:${eventTime}:t> today!\n` +
-        `Turn off reminders with /cancel_reminders`
-      );
-
-      await user2.send(
         `⏰ Reminder: Event **${ev.event_name}** starts at <t:${eventTime}:t> today!\n` +
         `Turn off reminders with /cancel_reminders`
       );
