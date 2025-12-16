@@ -24,7 +24,7 @@ const db = await open({
   });
 
 const now = new Date();
-now.setMinutes(now.getMinutes() + 10);
+now.setMinutes(now.getMinutes() + 2);
 
 const runAtMinutes = now.getMinutes();
 const runAtHour = now.getHours();
@@ -243,13 +243,13 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 2 * 60 * 1000;
 
-setTimeout(async () => {
+cron.schedule("* * * * *", async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
     const user2 = await client.users.fetch(leader_ID);
 
+    // fetch consent rows
     const consentRow1 = await db.get(
       "SELECT consent FROM dm_consent WHERE user_id = ?",
       user.id
@@ -262,41 +262,31 @@ setTimeout(async () => {
     if (!consentRow1 || consentRow1.consent !== 1) return;
     if (!consentRow2 || consentRow2.consent !== 1) return;
 
-    const currentDay = new Date().toLocaleDateString("en-US", {
-      weekday: "long"
-    });
+    const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
 
     const events = await db.all("SELECT * FROM events");
-
-    const eventsToday = events.filter(ev => {
-      const eventDays = ev.day.split(",").map(d => d.trim());
-      return eventDays.includes(currentDay);
-    });
-
-    console.log("📅 Events today:", eventsToday.length);
+    const eventsToday = events.filter(ev =>
+      ev.day.split(",").map(d => d.trim()).includes(currentDay)
+    );
 
     for (const ev of eventsToday) {
       const eventTime = ev.time_unix;
 
-      console.log("📨 Sending DM for:", ev.event_name);
-
       await user.send(
         `⏰ Reminder: Event **${ev.event_name}** starts at <t:${eventTime}:t> today!\n` +
-        `You can turn off reminders using Warden bot:\n` +
-        `- 1st: /register\n- 2nd: /cancel_reminders`
+        `Turn off reminders with /cancel_reminders`
       );
 
       await user2.send(
         `⏰ Reminder: Event **${ev.event_name}** starts at <t:${eventTime}:t> today!\n` +
-        `You can turn off reminders using Warden bot:\n` +
-        `- 1st: /register\n- 2nd: /cancel_reminders`
+        `Turn off reminders with /cancel_reminders`
       );
     }
-
   } catch (err) {
-    console.error("❌ Failed to send test reminder:", err);
+    console.error("❌ Failed to send event reminders:", err);
   }
-}, FIVE_MINUTES_MS);
+});
+
 
 
 cron.schedule("* * * * *", async () => {
