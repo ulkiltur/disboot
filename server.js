@@ -24,6 +24,7 @@ const db = await open({
   });
 
 const now = new Date();
+now.setHours(now.getHours() + 1);
 now.setMinutes(now.getMinutes() + 1);
 
 const runAtMinutes = now.getMinutes();
