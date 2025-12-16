@@ -16,6 +16,7 @@ import cancel_reminders from './commands/unbuggerme.js';
 
 const REMINDER_MINUTES_BEFORE = 15;
 const MY_USER_ID = "1416909595955302431";
+const leader_ID = "320573579961958402";
 
 const now = new Date();
 now.setMinutes(now.getMinutes() + 10);
@@ -242,6 +243,41 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
+setTimeout(async () => {
+  try {
+    const user = await client.users.fetch(MY_USER_ID);
+    const user2 = await client.users.fetch(leader_ID);
+    const consentRow = await db.get(
+                "SELECT consent FROM dm_consent WHERE user_id = ?",
+                member.id
+              );
+    if (consentRow.consent === 0) return;
+
+    const event = await db.all(
+      `SELECT * FROM events WHERE day = Tuesday`
+    );
+
+    if (!event) return;
+
+    const eventTime = event.time_unix;
+
+    await user.send(
+      `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!\n` +
+      `You can turn off reminders using Warden bot:\n` +
+      `- 1st: /register\n- 2nd: /cancel_reminders`
+    );
+    await user2.send(
+      `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!\n` +
+      `You can turn off reminders using Warden bot:\n` +
+      `- 1st: /register\n- 2nd: /cancel_reminders`
+    );
+  } catch (err) {
+    console.error("❌ Failed to send test reminder:", err);
+  }
+}, FIVE_MINUTES_MS);
+
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" }); // Monday, Tuesday...
@@ -250,29 +286,32 @@ cron.schedule("* * * * *", async () => {
   const db = await open({ filename: "./events.sqlite", driver: sqlite3.Database });
 
   try {
-    // Fetch events today
-    const events = await db.all(
-      `SELECT * FROM events WHERE day = ?`,
-      currentDay
-    );
+    // Fetch all events
+    const events = await db.all(`SELECT * FROM events`);
 
-    for (const event of events) {
+    // Filter events scheduled for today
+    const eventsToday = events.filter(event => {
+      const eventDays = event.days.split(",").map(d => d.trim());
+      return eventDays.includes(currentDay);
+    });
+
+    for (const event of eventsToday) {
       const eventTime = event.time_unix;
       const reminderTime = eventTime - REMINDER_MINUTES_BEFORE * 60;
 
-      // Send DM if it's time for the reminder
+      // Check if it's time to send the reminder (within the minute)
       if (currentUnix >= reminderTime && currentUnix < reminderTime + 60) {
         try {
           for (const guild of client.guilds.cache.values()) {
             for (const member of guild.members.cache.values()) {
               if (member.user.bot) continue;
 
-              // Check dm_consent table
+              // Check if member opted in
               const consentRow = await db.get(
                 "SELECT consent FROM dm_consent WHERE user_id = ?",
                 member.id
               );
-              if (!consentRow || consentRow.consent !== 1) continue;
+              if (!consentRow || consentRow.consent === 0) continue;
 
               await member.send(
                 `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!`
