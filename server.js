@@ -10,6 +10,9 @@ import dns from "node:dns";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import cron from "node-cron";
+import createEvent from './commands/createEvent.js';
+import set_reminder from './commands/buggerme.js';
+import cancel_reminders from './commands/unbuggerme.js';
 
 const REMINDER_MINUTES_BEFORE = 15;
 const MY_USER_ID = "1416909595955302431";
@@ -122,7 +125,7 @@ app.listen(PORT, () => console.log(`Render keep-alive server running on port ${P
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
-const commandList = [register, whoami, ocr, rank, hammertime];
+const commandList = [register, whoami, ocr, rank, hammertime, set_reminder, cancel_reminders, createEvent];
 
 // Add commands to collection
 commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));

@@ -1,6 +1,6 @@
 export default {
   data: new SlashCommandBuilder()
-    .setName("unbuggerme")
+    .setName("cancel_reminders")
     .setDescription("Stop receiving DM event reminders"),
 
   async execute(interaction) {
