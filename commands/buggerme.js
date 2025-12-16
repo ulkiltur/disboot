@@ -7,7 +7,7 @@ import {
 
 export default {
   data: new SlashCommandBuilder()
-    .setName("set_reminder")
+    .setName("set_reminders")
     .setDescription("Opt in to DM reminders for scheduled events"),
 
   async execute(interaction) {
