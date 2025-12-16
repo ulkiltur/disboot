@@ -110,21 +110,9 @@ export default {
     }
     const unixTime = parseInt(unixMatch[1], 10);
 
-    // Create table if it doesn't exist
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_name TEXT NOT NULL,
-        days TEXT NOT NULL,
-        time_unix INTEGER NOT NULL,
-        repeat_weekly INTEGER NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
     // Save event
     await db.run(
-      "INSERT INTO events (event_name, days, time_unix, repeat_weekly) VALUES (?, ?, ?, ?)",
+      "INSERT INTO events (event_name, day, time_unix, repeats_weekly) VALUES (?, ?, ?, ?)",
       eventName,
       daysInput,
       unixTime,
