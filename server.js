@@ -9,6 +9,57 @@ import hammertime from "./commands/time.js";
 import dns from "node:dns";
 export const ocrWaiters = new Map();
 
+export const userRateLimits = new Map();
+/*
+discordId => {
+  timestamps: number[],
+  running: number
+}
+*/
+
+const MAX_JOBS_PER_WINDOW = 2;
+const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_CONCURRENT = 1;
+
+export function checkRateLimit(discordId) {
+  const now = Date.now();
+
+  let entry = userRateLimits.get(discordId);
+  if (!entry) {
+    entry = { timestamps: [], running: 0 };
+    userRateLimits.set(discordId, entry);
+  }
+
+  // drop expired timestamps
+  entry.timestamps = entry.timestamps.filter(t => now - t < WINDOW_MS);
+
+  if (entry.running >= MAX_CONCURRENT) {
+    return { ok: false, reason: "You already have an OCR running." };
+  }
+
+  if (entry.timestamps.length >= MAX_JOBS_PER_WINDOW) {
+    const wait = Math.ceil((WINDOW_MS - (now - entry.timestamps[0])) / 1000);
+    return { ok: false, reason: `Rate limit reached. Try again in ${wait}s.` };
+  }
+
+  // reserve slot
+  entry.timestamps.push(now);
+  entry.running++;
+
+  return { ok: true };
+}
+
+export function releaseRateLimit(discordId) {
+  const entry = userRateLimits.get(discordId);
+  if (!entry) return;
+
+  entry.running = Math.max(0, entry.running - 1);
+
+  if (entry.running === 0 && entry.timestamps.length === 0) {
+    userRateLimits.delete(discordId);
+  }
+}
+
 
 
 dns.setDefaultResultOrder("ipv4first");
@@ -24,16 +75,18 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 app.post('/ocr/callback', (req, res) => {
-  const { text, discordId } = req.body;
+  const { text, jobId } = req.body;
 
-  const waiter = ocrWaiters.get(discordId);
+  const waiter = ocrWaiters.get(jobId);
   if (waiter) {
     waiter.resolve(text);
-    ocrWaiters.delete(discordId);
+    ocrWaiters.delete(jobId);
   }
 
   res.sendStatus(200);
 });
+
+
 
 
 app.get('/', (req, res) => res.send('Discord bot is running!'));

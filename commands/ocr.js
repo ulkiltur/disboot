@@ -6,6 +6,8 @@ import { translationMap } from "../data/translationMap.js";
 import dns from "node:dns";
 import { Agent, fetch } from "undici";
 import { ocrWaiters } from '../server.js';
+import { checkRateLimit, releaseRateLimit } from "../server.js";
+
 
 
 const sqlite = sqlite3.verbose();
@@ -35,6 +37,7 @@ export default {
 
     await interaction.deferReply({ flags: 64 });
 
+
     console.log("DNS result order:", dns.getDefaultResultOrder());
 
     const image = interaction.options.getAttachment("image");
@@ -46,15 +49,33 @@ export default {
     const response = await fetch(image.url);
     const buffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(buffer);
-    
-    await sendToOcrServer(imageBuffer, interaction.user.id);
-    await interaction.editReply(`✅ Check your stats with /whoami in few min`);
+
+    const rate = checkRateLimit(interaction.user.id);
+    if (!rate.ok) {
+      return interaction.editReply(`⏳ ${rate.reason}`);
+    }
 
     let fullText;
     try {
-      fullText = await waitForOcr(interaction.user.id);
-    } catch {
-      return interaction.editReply("❌ OCR timed out.");
+      // ---------------------------------------
+      // OCR LIFECYCLE (protected)
+      // ---------------------------------------
+      const { jobId } = await sendToOcrServer(imageBuffer, interaction.user.id);
+
+      await interaction.editReply(`✅ Check your stats with /whoami in few min`);
+
+      fullText = await waitForOcr(jobId);
+
+    } catch (err) {
+      console.error("OCR failed:", err);
+      await interaction.editReply("❌ OCR failed or timed out.");
+      return;
+
+    } finally {
+      // ---------------------------------------
+      // ✅ ALWAYS RELEASE SLOT
+      // ---------------------------------------
+      releaseRateLimit(interaction.user.id);
     }
 
     // reuse your existing logic
@@ -244,14 +265,14 @@ export default {
   }
 };
 
-function waitForOcr(discordId, timeoutMs = 420_000) {
+export function waitForOcr(jobId, timeoutMs = 420_000) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      ocrWaiters.delete(discordId);
+      ocrWaiters.delete(jobId);
       reject(new Error("OCR timeout"));
     }, timeoutMs);
 
-    ocrWaiters.set(discordId, {
+    ocrWaiters.set(jobId, {
       resolve: (text) => {
         clearTimeout(timer);
         resolve(text);
@@ -259,6 +280,7 @@ function waitForOcr(discordId, timeoutMs = 420_000) {
     });
   });
 }
+
 
 async function safeReadJson(res, label = "response") {
   const raw = await res.text(); // read body ONCE
@@ -372,3 +394,13 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
 
   await db.close();
 }
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, entry] of userRateLimits) {
+    entry.timestamps = entry.timestamps.filter(t => now - t < WINDOW_MS);
+    if (entry.timestamps.length === 0 && entry.running === 0) {
+      userRateLimits.delete(id);
+    }
+  }
+}, 60_000);
