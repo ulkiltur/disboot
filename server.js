@@ -243,7 +243,7 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 4 * 60 * 1000;
+const FIVE_MINUTES_MS = 1 * 60 * 1000;
 
 setTimeout(async () => {
   try {
@@ -294,7 +294,7 @@ cron.schedule("* * * * *", async () => {
 
     // Filter events scheduled for today
     const eventsToday = events.filter(event => {
-    const eventDays = event.days.split(",").map(d => d.trim());
+    const eventDays = event.day.split(",").map(d => d.trim());
       return eventDays.includes(currentDay) && event.reminder_sent === 0;
     });
 
