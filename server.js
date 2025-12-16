@@ -252,7 +252,7 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-
+/*
 cron.schedule(cronTime, async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
@@ -282,7 +282,7 @@ cron.schedule(cronTime, async () => { // runs every minute
     console.error("❌ Failed to send event reminders:", err);
   }
 });
-
+*/
 
 
 cron.schedule("* * * * *", async () => {
