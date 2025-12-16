@@ -196,6 +196,15 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   if (interaction.customId === "dm_decline") {
+    await db.run(
+      `INSERT INTO dm_consent (user_id, consent, agreed_at)
+       VALUES (?, 0, ?)
+       ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+      userId,
+      Date.now(),
+      Date.now()
+    );
+
     await interaction.update({
       content: "❌ No problem — you won’t receive any DMs.",
       components: []
@@ -249,13 +258,6 @@ cron.schedule(cronTime, async () => { // runs every minute
   try {
     const user = await client.users.fetch(MY_USER_ID);
 
-    // fetch consent rows
-    const consentRow1 = await db.get(
-      "SELECT consent FROM dm_consent WHERE user_id = ?",
-      user.id
-    );
-
-    if (consentRow1.consent !== 1) return;
 
     const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
 
@@ -264,13 +266,16 @@ cron.schedule(cronTime, async () => { // runs every minute
       ev.day.split(",").map(d => d.trim()).includes(currentDay)
     );
 
-    for (const ev of eventsToday) {
-      const eventTime = ev.time_unix;
+    if (eventsToday.length > 0) {
+      let message = `⏰ **Today's Events:**\n`;
 
-      await user.send(
-        `⏰ Reminder: Event **${ev.event_name}** starts at <t:${eventTime}:t> today!\n` +
-        `Turn off reminders with /cancel_reminders`
-      );
+      for (const ev of eventsToday) {
+        message += `- ${ev.event_name} at <t:${ev.time_unix}:t>\n`;
+      }
+
+      message += `\nTurn off reminders with /cancel_reminders`;
+
+      await user.send(message);
     }
   } catch (err) {
     console.error("❌ Failed to send event reminders:", err);
@@ -310,9 +315,17 @@ cron.schedule("* * * * *", async () => {
               );
               if (consentRow.consent !== 1) continue;
 
-              await member.send(
-                `⏰ Reminder: Event **${event.event_name}** starts at <t:${eventTime}:t> today!`
-              );
+              if (eventsToday.length > 0) {
+                let message = `⏰ **Today's Events:**\n`;
+
+                for (const ev of eventsToday) {
+                  message += `- ${ev.event_name} at <t:${ev.time_unix}:t>\n`;
+                }
+
+                message += `\nTurn off reminders with /cancel_reminders`;
+
+                await user.send(message);
+              }
             }
           }
 

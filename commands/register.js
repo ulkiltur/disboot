@@ -65,12 +65,6 @@ export default {
         interaction.user.id
       );
 
-      try {
-        await member.setNickname(name);
-      } catch (err) {
-        console.log("Ingame-name change failed:", err);
-      }
-
       return interaction.reply({
         content: `🔄 Your ingame-name has been updated successfully to: **${name}**!`,
         flags: 64,
@@ -83,11 +77,14 @@ export default {
       name
     );
 
-    try {
-      await member.setNickname(name);
-    } catch (err) {
-      console.log("Nickname change failed:", err);
-    }
+    await db.run(
+      `INSERT INTO dm_consent (user_id, consent, agreed_at)
+       VALUES (?, 1, ?)
+       ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+      userId,
+      Date.now(),
+      Date.now()
+    );
 
     const LOG_CHANNEL_ID = "1447698250323857622";
 
