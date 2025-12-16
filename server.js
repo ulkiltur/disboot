@@ -243,7 +243,7 @@ client.once('ready', async () => {
   const archiveThreads = ["1445763806948229171", "1447195005692416185", "1446456107110498365"];
 });
 
-const FIVE_MINUTES_MS = 1 * 60 * 1000;
+const FIVE_MINUTES_MS = 9 * 60 * 1000;
 
 setTimeout(async () => {
   try {
