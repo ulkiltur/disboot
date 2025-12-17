@@ -17,6 +17,9 @@ import cancel_reminders from './commands/unbuggerme.js';
 const REMINDER_MINUTES_BEFORE = 15;
 const MY_USER_ID = "1416909595955302431";
 const leader_ID = "320573579961958402";
+const roleId = "1445408016387149894";
+const GUILD_IDS = [process.env.GUILD_ID, "1445401393643917366"];
+const GUILD_ID = ["1445401393643917366"];
 
 const db = await open({
       filename: "/var/data/users.sqlite",
@@ -34,8 +37,6 @@ const cronTime = `${runAtMinutes} ${runAtHour} * * *`;
 console.log(`✅ Test reminder scheduled at ${now.toLocaleTimeString()}`);
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
-const roleId = "Goose";
 
 export const ocrWaiters = new Map();
 
@@ -137,7 +138,6 @@ commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));
 // Register slash commands with Discord
 // -------------------------------
 
-const guilds = [process.env.GUILD_ID, "1445401393643917366"];
 
 
 (async () => {
@@ -310,100 +310,99 @@ cron.schedule("* * * * *", async () => {
   const currentUnix = Math.floor(now.getTime() / 1000);
 
   try {
+    const guild = client.guilds.cache.get("1445401393643917366");
+    if (!guild) return;
+
+    await guild.members.fetch();
     // Fetch all events
-    const events = await db.all(`SELECT * FROM events`);
+    const events = await db.all(`SELECT * FROM events WHERE reminder_sent = 0`);
 
     // Filter events scheduled for today
     const eventsToday = events
-      .filter(ev => {
-        const eventDays = ev.day.split(",").map(d => d.trim());
-        return eventDays.includes(currentDay);
-      })
-      .sort((a, b) => a.time_unix - b.time_unix); // sort by time
+      .filter(ev =>
+        ev.day
+          .split(",")
+          .map(d => d.trim())
+          .includes(currentDay)
+      )
+      .sort((a, b) => a.time_unix - b.time_unix);
 
     if (eventsToday.length === 0) return;
 
     const firstEvent = eventsToday[0];
-    const oneHourBefore = firstEvent.time_unix - 60 * 60; // 1h before
+    const oneHourBefore = firstEvent.time_unix - 3600;
 
     if (currentUnix >= oneHourBefore && currentUnix < oneHourBefore + 60) {
-      const roleId = "ROLE_ID_HERE";
+      
+    const membersWithRole = guild.members.cache.filter(member =>
+        member.roles.cache.has(roleId)
+    );
 
-      await guild.members.fetch(); // populates guild.members.cache
-
-      for (const guild of client.guilds.cache.values()) {
-        const membersWithRole = guild.members.cache.filter(member =>
-          member.roles.cache.has(roleId)
+      for (const member of membersWithRole.values()) {
+        // Only add if they haven't opted out
+        const consentRow = await db.get(
+          "SELECT consent FROM dm_consent WHERE user_id = ?",
+          member.id
         );
 
-        for (const member of membersWithRole.values()) {
-          // Only add if they haven't opted out
-          const consentRow = await db.get(
-            "SELECT consent FROM dm_consent WHERE user_id = ?",
-            member.id
-          );
-
-          if (consentRow && consentRow.consent === 0) {
-            continue;
-          }
-
-          await db.run(
-            `INSERT INTO dm_consent (user_id, consent, agreed_at)
-              VALUES (?, 1, ?)
-              ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
-            member.id,
-            Date.now(),
-            Date.now()
-          );
-          
+        if (consentRow && consentRow.consent === 0) {
+          continue;
         }
+
+        await db.run(
+          `INSERT INTO dm_consent (user_id, consent, agreed_at)
+            VALUES (?, 1, ?)
+            ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
+          member.id,
+          Date.now(),
+          Date.now()
+        );
+        
       }
     }
 
-    for (const event of eventsToday) {
-      const eventTime = event.time_unix;
-      const reminderTime = eventTime - REMINDER_MINUTES_BEFORE * 60;
 
-      if (currentUnix >= reminderTime && currentUnix < reminderTime + 60) {
+      for (const event of eventsToday) {
+      const reminderTime =
+        event.time_unix - REMINDER_MINUTES_BEFORE * 60;
+
+      if (currentUnix < reminderTime || currentUnix >= reminderTime + 60)
+        continue;
+
+      for (const member of guild.members.cache.values()) {
+        if (member.user.bot) continue;
+        if (!member.roles.cache.has(roleId)) continue;
+
+        const consentRow = await db.get(
+          "SELECT consent FROM dm_consent WHERE user_id = ?",
+          member.id
+        );
+
+        if (!consentRow || consentRow.consent !== 1) continue;
+
+        let message = `⏰ **Today's Events:**\n`;
+        for (const ev of eventsToday) {
+          message += `• **${ev.event_name}** at <t:${ev.time_unix}:t>\n`;
+        }
+        message += `\nDisable reminders with /cancel_reminders`;
+
         try {
-          for (const guild of client.guilds.cache.values()) {
-            for (const member of guild.members.cache.values()) {
-              if (member.user.bot) continue;
-
-              const consentRow = await db.get(
-                "SELECT consent FROM dm_consent WHERE user_id = ?",
-                member.id
-              );
-              if (consentRow.consent !== 1) continue;
-
-              if (eventsToday.length > 0) {
-                let message = `⏰ **Today's Events:**\n`;
-
-                for (const ev of eventsToday) {
-                  message += `- ${ev.event_name} at <t:${ev.time_unix}:t>\n`;
-                }
-
-                message += `\nTurn off reminders with /cancel_reminders`;
-
-                await user.send(message);
-              }
-            }
-          }
-
-          // Mark event reminder as sent
-          await db.run(
-            "UPDATE events SET reminder_sent = 1 WHERE id = ?",
-            event.id
-          );
-        } catch (err) {
-          console.error("Failed to send reminder:", err);
+          await member.send(message);
+        } catch {
+          // DMs closed
         }
       }
-    }
 
+      await db.run(
+        "UPDATE events SET reminder_sent = 1 WHERE id = ?",
+        event.id
+      );
+    }
   } catch (err) {
-    console.error("Failed to fetch events:", err);
+    console.error("Cron failed:", err);
   }
+}, {
+  timezone: "Europe/Madrid"
 });
 
 client.login(process.env.TOKEN);
