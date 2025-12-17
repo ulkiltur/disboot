@@ -86,7 +86,7 @@ export default {
 
     if (!ALLOWED_USERS.includes(interaction.user.id)) {
       return interaction.reply({
-        content: '❌ You are not allowed to use /register_event.',
+        content: '❌ You are not allowed to use /register_event. Talk with a Warlord if you want to create an event',
         flags: 64
       });
     }
@@ -99,14 +99,14 @@ export default {
     });
 
     const eventName = interaction.options.getString("event_name");
-    const daysInput = interaction.options.getString("days"); // e.g., "Monday,Wednesday"
-    const timeInput = interaction.options.getString("time");   // <t:unix:F>
+    const daysInput = interaction.options.getString("days"); 
+    const timeInput = interaction.options.getString("time");
     const repeatWeekly = interaction.options.getBoolean("repeat_weekly");
 
     // Extract UNIX timestamp from <t:unix:F>
     const unixMatch = timeInput.match(/<t:(\d+):t>/);
     if (!unixMatch) {
-      return interaction.editReply("❌ Invalid time format. Must be <t:unix:F>");
+      return interaction.editReply("❌ Invalid time format. Must be <t:unix:t>");
     }
     const unixTime = parseInt(unixMatch[1], 10);
 

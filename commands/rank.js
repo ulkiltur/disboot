@@ -17,7 +17,7 @@ export default {
 
     if (!ALLOWED_USERS.includes(interaction.user.id)) {
       return interaction.reply({
-        content: '❌ You are not allowed to use /rank.',
+        content: '❌ You are not allowed to use /rank. Talk with a Warlord if you need to use it',
         flags: 64
       });
     }

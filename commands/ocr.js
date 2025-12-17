@@ -68,7 +68,7 @@ export default {
 
     } catch (err) {
       console.error("OCR failed:", err);
-      await interaction.editReply("❌ OCR failed or timed out.");
+      await interaction.editReply("❌ command failed or timed out.");
       return;
 
     } finally {
@@ -260,7 +260,7 @@ export default {
 
     } catch (err) {
       console.error("OCR failed:", err);
-      await interaction.editReply("❌ OCR failed.");
+      await interaction.editReply("❌ Incorrect image. Screenshot must be from Develop > Abilities , anything else is not valid/won't read it");
     }
   }
 };
@@ -346,7 +346,7 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
 
   const weaponNames = detectedWeapons
   .filter(w => w.found)
-  .map(w => translationMap[w.name] ?? w.name); // translate if possible
+  .map(w => translationMap[w.name] ?? w.name);
   const weapon1 = weaponNames[0] ?? null;
   const weapon2 = weaponNames[1] ?? null;
 

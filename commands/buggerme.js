@@ -28,8 +28,8 @@ export default {
       content:
         "📬 **DM Notification Agreement**\n\n" +
         "By accepting, you allow the bot to send you **direct messages** " +
-        "with reminders **30 minutes before scheduled events**.\n\n" +
-        "You can opt out anytime with `/unbuggerme`.",
+        "with reminders **15 minutes before scheduled events**.\n\n" +
+        "You can opt out anytime with `/cancel_reminders`.",
       components: [row]
     });
   }

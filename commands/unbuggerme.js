@@ -13,7 +13,7 @@ export default {
 
     await interaction.reply({
       ephemeral: true,
-      content: "🛑 You will no longer receive DM reminders."
+      content: "🛑 You will no longer receive DM reminders. To activate them again use /set_reminders"
     });
   }
 };
