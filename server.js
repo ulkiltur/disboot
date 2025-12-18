@@ -144,7 +144,7 @@ commandList.forEach(cmd => client.commands.set(cmd.data.name, cmd));
   try {
     console.log('Refreshing slash commands…');
 
-    for (const guildId of guilds) {
+    for (const guildId of GUILD_IDS) {
       await rest.put(
         Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
         { body: commandList.map(c => c.data.toJSON()) }
