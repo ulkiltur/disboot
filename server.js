@@ -271,143 +271,55 @@ client.once('ready', async () => {
 
 
 /*
-cron.schedule(cronTime, async () => { // runs every minute
-  try {
-    const user = await client.users.fetch(MY_USER_ID);
-    const user2 = await client.users.fetch(leader_ID);
-
-
-    const currentDay = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date());
-
-    const events = await db.all("SELECT * FROM events");
-    const eventsToday = events.filter(ev =>
-      ev.day.split(",").map(d => d.trim()).includes(currentDay)
-    );
-
-    if (eventsToday.length > 0) {
-      let message = `⏰ **Today's Events:**\n`;
-
-      for (const ev of eventsToday) {
-        message += `- ${ev.event_name} at <t:${ev.time_unix}:t>\n`;
-      }
-
-      message += `\nTurn off reminders with /cancel_reminders`;
-
-      await user.send(message);
-      await user2.send(message);
-    }
-  } catch (err) {
-    console.error("❌ Failed to send event reminders:", err);
-  }
-});
-*/
-
-/*
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   const currentUnix = Math.floor(now.getTime() / 1000);
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" });
 
   try {
     const guild = client.guilds.cache.get("1445401393643917366");
     if (!guild) return;
 
-    await guild.members.fetch();
-
-    // ✅ Fetch all events
-    const events = await db.all(`SELECT * FROM events`);
-
-    // ✅ Filter events scheduled for today
-    const eventsToday = events.filter(ev =>
-      ev.day
-        .split(",")
-        .map(d => d.trim())
-        .includes(currentDay)
+    // ✅ Use cached members only to avoid rate limits
+    const membersWithRole = guild.members.cache.filter(
+      m => m.roles.cache.has(roleId) && !m.user.bot
     );
 
-    if (eventsToday.length === 0) return;
-
-    // =========================
-    // 1️⃣ PRE-REGISTER ROLE (1h before FIRST event)
-    // =========================
-    const firstEventUnix = Math.min(
-      ...eventsToday.map(ev =>
-        getTodayUnix(ev.event_hour, ev.event_minute)
-      )
+    const events = await db.all(
+      "SELECT * FROM events WHERE day = ?",
+      currentDay
     );
 
-    const oneHourBefore = firstEventUnix - 3600;
+    if (!events.length) return;
 
-    if (currentUnix >= oneHourBefore && currentUnix < oneHourBefore + 60) {
-      const membersWithRole = guild.members.cache.filter(
-        m => m.roles.cache.has(roleId) && !m.user.bot
-      );
-
-      for (const member of membersWithRole.values()) {
-        const consentRow = await db.get(
-          "SELECT consent FROM dm_consent WHERE user_id = ?",
-          member.id
-        );
-
-        if (consentRow && consentRow.consent === 0) continue;
-
-        await db.run(
-          `INSERT INTO dm_consent (user_id, consent, agreed_at)
-           VALUES (?, 1, ?)
-           ON CONFLICT(user_id) DO NOTHING`,
-          member.id,
-          Date.now()
-        );
-      }
-    }
-
-    // =========================
-    // 2️⃣ SEND REMINDERS (15 min before EACH event)
-    // =========================
-    for (const event of eventsToday) {
+    for (const event of events) {
       const eventUnix = getTodayUnix(event.event_hour, event.event_minute);
       const reminderUnix = eventUnix - REMINDER_MINUTES_BEFORE * 60;
 
-      // Skip if not in time window
-      if (currentUnix < reminderUnix || currentUnix >= reminderUnix + 60)
-        continue;
+      // Skip if not within reminder window
+      if (currentUnix < reminderUnix || currentUnix >= reminderUnix + 60) continue;
 
-      // Prevent duplicate sends today
-      if (event.last_reminded && event.last_reminded >= todayStart)
-        continue;
+      // Skip if already reminded today
+      if (event.last_reminded && event.last_reminded >= todayStart) continue;
 
-      for (const member of guild.members.cache.values()) {
-        if (member.user.bot) continue;
-        if (!member.roles.cache.has(roleId)) continue;
-
+      for (const member of membersWithRole.values()) {
+        // Check DM consent
         const consentRow = await db.get(
           "SELECT consent FROM dm_consent WHERE user_id = ?",
           member.id
         );
-
         if (!consentRow || consentRow.consent !== 1) continue;
 
-        let message = `⏰ **Today's Events:**\n`;
-
-        for (const ev of eventsToday) {
-          const evUnix = getTodayUnix(ev.event_hour, ev.event_minute);
-          message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
-        }
-
-        message += `\nDisable reminders with /cancel_reminders`;
+        let message = `⏰ **Today's Events:**\n• **${event.event_name}** at <t:${eventUnix}:t>\n`;
+        message += "\nDisable reminders with /cancel_reminders";
 
         try {
           await member.send(message);
         } catch {}
       }
 
-      // ✅ Mark reminded for today
+      // Mark event as reminded today
       await db.run(
         "UPDATE events SET last_reminded = ? WHERE id = ?",
         Date.now(),
@@ -417,117 +329,58 @@ cron.schedule("* * * * *", async () => {
   } catch (err) {
     console.error("Cron failed:", err);
   }
-}, {
-  timezone: "Europe/Madrid"
-});
+}, { timezone: "Europe/Madrid" });
 */
 
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   const currentUnix = Math.floor(now.getTime() / 1000);
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" });
 
   try {
     const guild = client.guilds.cache.get("1445401393643917366");
     if (!guild) return;
 
-    await guild.members.fetch();
-
-    // ✅ Fetch all events
-    const events = await db.all(`SELECT * FROM events`);
-
-    // ✅ Filter events scheduled for today
-    const eventsToday = events.filter(ev =>
-      ev.day
-        .split(",")
-        .map(d => d.trim())
-        .includes(currentDay)
+    // ✅ Use cached members only to avoid rate limits
+    const membersWithRole = guild.members.cache.filter(
+      m => m.roles.cache.has(roleId) && !m.user.bot
     );
 
-    if (eventsToday.length === 0) return;
-
-    // =========================
-    // 1️⃣ PRE-REGISTER ROLE (1h before FIRST event)
-    // =========================
-    const firstEventUnix = Math.min(
-      ...eventsToday.map(ev =>
-        getTodayUnix(ev.event_hour, ev.event_minute)
-      )
+    const events = await db.all(
+      "SELECT * FROM events WHERE day = ?",
+      currentDay
     );
 
-    const oneHourBefore = firstEventUnix - 3600;
+    if (!events.length) return;
 
-    if (currentUnix >= oneHourBefore && currentUnix < oneHourBefore + 60) {
-      const membersWithRole = guild.members.cache.filter(
-        m => m.roles.cache.has(roleId) && !m.user.bot
-      );
-
-      for (const member of membersWithRole.values()) {
-        const consentRow = await db.get(
-          "SELECT consent FROM dm_consent WHERE user_id = ?",
-          member.id
-        );
-
-        if (consentRow && consentRow.consent === 0) continue;
-
-        await db.run(
-          `INSERT INTO dm_consent (user_id, consent, agreed_at)
-           VALUES (?, 1, ?)
-           ON CONFLICT(user_id) DO NOTHING`,
-          member.id,
-          Date.now()
-        );
-      }
-    }
-
-    // =========================
-    // 2️⃣ SEND REMINDERS (15 min before EACH event)
-    // =========================
-    for (const event of eventsToday) {
+    for (const event of events) {
       const eventUnix = getTodayUnix(event.event_hour, event.event_minute);
       const reminderUnix = eventUnix - REMINDER_MINUTES_BEFORE * 60;
 
-      // Skip if not in time window
-      if (currentUnix < reminderUnix || currentUnix >= reminderUnix + 60)
-        continue;
+      // Skip if not within reminder window
+      if (currentUnix < reminderUnix || currentUnix >= reminderUnix + 60) continue;
 
-      // Prevent duplicate sends today
-      if (event.last_reminded && event.last_reminded >= todayStart)
-        continue;
+      // Skip if already reminded today
+      if (event.last_reminded && event.last_reminded >= todayStart) continue;
 
-      for (const member of guild.members.cache.values()) {
-        if (member.user.bot) continue;
-        if (!member.roles.cache.has(roleId)) continue;
-        if (member.id !== "1416909595955302431") continue;
-
+      for (const member of membersWithRole.values()) {
+        // Check DM consent
         const consentRow = await db.get(
           "SELECT consent FROM dm_consent WHERE user_id = ?",
           member.id
         );
-
         if (!consentRow || consentRow.consent !== 1) continue;
 
-        let message = `⏰ **Today's Events:**\n`;
-
-        for (const ev of eventsToday) {
-          const evUnix = getTodayUnix(ev.event_hour, ev.event_minute);
-          message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
-        }
-
-        message += `\nDisable reminders with /cancel_reminders`;
+        let message = `⏰ **Today's Events:**\n• **${event.event_name}** at <t:${eventUnix}:t>\n`;
+        message += "\nDisable reminders with /cancel_reminders";
 
         try {
           await member.send(message);
         } catch {}
       }
 
-      // ✅ Mark reminded for today
+      // Mark event as reminded today
       await db.run(
         "UPDATE events SET last_reminded = ? WHERE id = ?",
         Date.now(),
@@ -537,9 +390,7 @@ cron.schedule("* * * * *", async () => {
   } catch (err) {
     console.error("Cron failed:", err);
   }
-}, {
-  timezone: "Europe/Madrid"
-});
+}, { timezone: "Europe/Madrid" });
 
 
 
