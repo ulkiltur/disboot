@@ -309,7 +309,6 @@ cron.schedule("* * * * *", async () => {
           member.id
         );
         if (!consentRow || consentRow.consent !== 1) continue;
-        if (member.id !== "1416909595955302431") continue;
 
         // Build message with all today's events
         let message = "⏰ **Today's Events:**\n";
