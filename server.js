@@ -258,11 +258,6 @@ client.once('ready', async () => {
 
   console.log(`Found ${membersWithRole.length} members with role`);
 
-  const existing = await db.get(
-  "SELECT consent FROM dm_consent WHERE user_id = ?",
-  member.id
-);
-
   // Insert into DB
   for (const member of membersWithRole) {
     const existing = await db.get(
