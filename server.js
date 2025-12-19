@@ -254,16 +254,33 @@ client.once('ready', async () => {
 
   console.log(`Found ${membersWithRole.length} members with role`);
 
+  const existing = await db.get(
+  "SELECT consent FROM dm_consent WHERE user_id = ?",
+  member.id
+);
+
   // Insert into DB
   for (const member of membersWithRole) {
-    await db.run(
-      `INSERT INTO dm_consent (user_id, consent, agreed_at)
-       VALUES (?, 1, ?)
-       ON CONFLICT(user_id) DO UPDATE SET consent=1, agreed_at=?`,
-      member.id,
-      Date.now(),
-      Date.now()
+    const existing = await db.get(
+      "SELECT consent FROM dm_consent WHERE user_id = ?",
+      member.id
     );
+    if (!existing) {
+      // No row exists → safe to insert with consent = 1
+      await db.run(
+        `INSERT INTO dm_consent (user_id, consent, agreed_at)
+        VALUES (?, 1, ?)`,
+        member.id,
+        Date.now()
+      );
+    } else if (existing.consent === 1) {
+      // Already consented → optionally update timestamp
+      await db.run(
+        `UPDATE dm_consent SET agreed_at = ? WHERE user_id = ?`,
+        Date.now(),
+        member.id
+      );
+    }
   }
 
   console.log("✅ Members added to dm_consent");
@@ -308,7 +325,7 @@ cron.schedule("* * * * *", async () => {
           "SELECT consent FROM dm_consent WHERE user_id = ?",
           member.id
         );
-        if (!consentRow || consentRow.consent !== 1) continue;
+        if (!consentRow || consentRow.consent === 0) continue;
 
         // Build message with all today's events
         let message = "⏰ **Today's Events:**\n";
