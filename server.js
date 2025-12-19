@@ -170,7 +170,11 @@ client.on('interactionCreate', async (interaction) => {
     await command.execute(interaction);
   } catch (err) {
     console.error(err);
-    if (!interaction.replied) {
+    if (interaction.deferred || interaction.replied) {
+    // Interaction already deferred or replied → edit the existing reply
+    await interaction.editReply({ content: '❌ Error executing command' });
+    } else {
+      // Interaction not deferred → send a fresh reply
       await interaction.reply({ content: '❌ Error executing command', flags: 64 });
     }
   }
@@ -329,7 +333,7 @@ cron.schedule("* * * * *", async () => {
 
         // Build message with all today's events
         let message = "⏰ **Today's Events:**\n";
-        for (const ev of eventsToRemind) {
+        for (const ev of events) {
           const evUnix = getTodayUnix(ev.event_hour, ev.event_minute);
           message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
         }
@@ -340,7 +344,7 @@ cron.schedule("* * * * *", async () => {
         } catch {} // ignore DMs closed
       }
 
-      for (const ev of eventsToRemind) {
+      for (const ev of events) {
       await db.run(
         "UPDATE events SET last_reminded = ? WHERE id = ?",
         Date.now(),
