@@ -120,7 +120,7 @@ export default {
 
     // Save event
     await db.run(
-      "INSERT INTO events (event_name, day, event_hour, event_minute, repeats_weekly) VALUES (?, ?, ?, ?)",
+      "INSERT INTO events (event_name, day, event_hour, event_minute, repeats_weekly) VALUES (?, ?, ?, ?, ?)",
       eventName,
       daysInput,
       eventHour,
