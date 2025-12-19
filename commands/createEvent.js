@@ -36,7 +36,7 @@ export default {
     )
     .addStringOption(option =>
       option.setName("time")
-        .setDescription("Time in format <t:unix:F>")
+        .setDescription("Time in format hh:mm")
         .setRequired(true)
     )
     .addBooleanOption(option =>
@@ -110,12 +110,21 @@ export default {
     }
     const unixTime = parseInt(unixMatch[1], 10);
 
+    // Convert to Date
+    const date = new Date(unixTime * 1000);
+
+    // ⚠️ IMPORTANT:
+    // These are already in the user's local time when they created the command
+    const eventHour = date.getHours();     // 0–23
+    const eventMinute = date.getMinutes(); // 0–59
+
     // Save event
     await db.run(
-      "INSERT INTO events (event_name, day, time_unix, repeats_weekly) VALUES (?, ?, ?, ?)",
+      "INSERT INTO events (event_name, day, event_hour, event_minute, repeats_weekly) VALUES (?, ?, ?, ?)",
       eventName,
       daysInput,
-      unixTime,
+      eventHour,
+      eventMinute,
       repeatWeekly ? 1 : 0
     );
 
