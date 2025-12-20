@@ -5,7 +5,8 @@ import { open } from "sqlite";
 const ALLOWED_USERS = [
   '1416909595955302431', // User 1 ID
   '320573579961958402', // User 2 ID
-  '1439615858480775198'  // User 3 ID
+  '1439615858480775198',  // User 3 ID
+  '662513451519836171'
 ];
 
 export default {

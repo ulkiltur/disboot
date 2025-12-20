@@ -17,6 +17,7 @@ import cancel_reminders from './commands/unbuggerme.js';
 const REMINDER_MINUTES_BEFORE = 15;
 const MY_USER_ID = "1416909595955302431";
 const leader_ID = "320573579961958402";
+const leader2_ID = "662513451519836171";
 const roleId = "1445408016387149894";
 const GUILD_IDS = [process.env.GUILD_ID, "1445401393643917366"];
 const GUILD_ID = ["1445401393643917366"];
@@ -325,6 +326,7 @@ cron.schedule("* * * * *", async () => {
           member.id
         );
         if (!consentRow || consentRow.consent === 0) continue;
+        if (member.id !== MY_USER_ID) continue;
 
         // Build message with all today's events
         let message = "⏰ **Today's Events:**\n";
