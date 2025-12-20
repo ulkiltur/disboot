@@ -332,7 +332,7 @@ cron.schedule("* * * * *", async () => {
         message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
       }
       message += "\nDisable reminders with /cancel_reminders";
-
+      /*
       message += `\n\n:calendar_spiral: **9th Breakthrough Reminder**\n\n` +
          `**Date:** 21 / 12 / 2025\n\n` +
          `:zap: **Energy**\n` +
@@ -342,6 +342,7 @@ cron.schedule("* * * * *", async () => {
          `• Guaranteed Legendary & Epic items from the 8th Breakthrough\n` +
          `• Attunement stones (PvE/PvP)\n\n` +
          `:x: Recommended to not attune anymore until the next breakthrough`;
+         */
 
       // ✅ Send DMs in safe chunks
       const CHUNK_SIZE = 5;
