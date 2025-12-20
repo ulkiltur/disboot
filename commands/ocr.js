@@ -385,6 +385,9 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
     weapon2
   );
 
+  if (existing && existing.score >= score){
+    return;
+  }
 
   if (existing) {
       await db.run(
