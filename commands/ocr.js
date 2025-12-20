@@ -100,7 +100,6 @@ export default {
         .toLowerCase();                  // lowercase for easy matching
     }
 
-    console.log("Step 7");
     function isWeaponDetected(weaponName, ocrText) {
       const cleanOCR = normalizeText(ocrText);
       const cleanWeapon = normalizeText(weaponName);
@@ -344,11 +343,19 @@ async function saveSkills(discordId, ingameName, playerId, role, detectedWeapons
 
 
 
-  const weaponNames = detectedWeapons
-  .filter(w => w.found)
-  .map(w => translationMap[w.name] ?? w.name);
+  const weaponNames = [
+    ...new Set(
+      detectedWeapons
+        .filter(w => w.found)
+        .map(w => (translationMap[w.name] ?? w.name).toLowerCase())
+    )
+  ].map(w => w.replace(/\b\w/g, c => c.toUpperCase()));
+
   const weapon1 = weaponNames[0] ?? null;
-  const weapon2 = weaponNames[1] ?? null;
+  const weapon2 = weaponNames[1] && weaponNames[1] !== weapon1
+    ? weaponNames[1]
+    : null;
+
 
 
 
