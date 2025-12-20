@@ -14,7 +14,7 @@ import createEvent from './commands/createEvent.js';
 import set_reminder from './commands/buggerme.js';
 import cancel_reminders from './commands/unbuggerme.js';
 
-const REMINDER_MINUTES_BEFORE = 15;
+const REMINDER_MINUTES_BEFORE = 30;
 const MY_USER_ID = "1416909595955302431";
 const leader_ID = "320573579961958402";
 const leader2_ID = "662513451519836171";
@@ -319,35 +319,49 @@ cron.schedule("* * * * *", async () => {
       // Skip if already reminded today
       if (event.last_reminded && event.last_reminded >= todayStart) continue;
 
-      for (const member of membersWithRole.values()) {
-        // Check DM consent
-        const consentRow = await db.get(
-          "SELECT consent FROM dm_consent WHERE user_id = ?",
-          member.id
-        );
-        if (!consentRow || consentRow.consent === 0) continue;
-        if (member.id !== MY_USER_ID) continue;
-
-        // Build message with all today's events
+      const membersArray = Array.from(membersWithRole.values());
+      const userIds = membersArray.map(m => m.id);
+      const consentRows = await db.all(
+        `SELECT user_id FROM dm_consent WHERE user_id IN (${userIds.map(() => '?').join(',')}) AND consent = 1`,
+        ...userIds
+      );
+      const allowedIds = new Set(consentRows.map(r => r.user_id));
         let message = "⏰ **Today's Events:**\n";
-        for (const ev of events) {
-          const evUnix = getTodayUnix(ev.event_hour, ev.event_minute);
-          message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
-        }
-        message += "\nDisable reminders with /cancel_reminders";
+      for (const ev of events) {
+        const evUnix = getTodayUnix(ev.event_hour, ev.event_minute);
+        message += `• **${ev.event_name}** at <t:${evUnix}:t>\n`;
+      }
+      message += "\nDisable reminders with /cancel_reminders";
 
-        try {
-          await member.send(message);
-        } catch {} // ignore DMs closed
+      message += `\n\n:calendar_spiral: **9th Breakthrough Reminder**\n\n` +
+         `**Date:** 21 / 12 / 2025\n\n` +
+         `:zap: **Energy**\n` +
+         `Energy saving starts at <t:1766264400:F> (don't spend more energy than what you have at this point)\n\n` +
+         `:crystal_ball: **Attuning**\n` +
+         `It's highly possible you can use for the "9th Breakthrough Gear" (Legendary lvl 61) the following:\n` +
+         `• Guaranteed Legendary & Epic items from the 8th Breakthrough\n` +
+         `• Attunement stones (PvE/PvP)\n\n` +
+         `:x: Recommended to not attune anymore until the next breakthrough`;
+
+      // ✅ Send DMs in safe chunks
+      const CHUNK_SIZE = 5;
+      for (let i = 0; i < membersArray.length; i += CHUNK_SIZE) {
+        const chunk = membersArray.slice(i, i + CHUNK_SIZE);
+        await Promise.all(chunk.map(async member => {
+          if (!allowedIds.has(member.id)) return;
+          try {
+            await member.send(message);
+          } catch {} // ignore closed DMs
+        }));
+        await new Promise(res => setTimeout(res, 1000)); // 1s delay between chunks
       }
 
-      for (const ev of events) {
+      // ✅ Update last_reminded for this event
       await db.run(
         "UPDATE events SET last_reminded = ? WHERE id = ?",
         Date.now(),
-        ev.id
+        event.id
       );
-    }
     }
   } catch (err) {
     console.error("Cron failed:", err);
