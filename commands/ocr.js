@@ -225,12 +225,25 @@ export default {
         driver: sqlite.Database,
       });
 
+
       const row = await db.get(
         "SELECT ingame_name FROM users WHERE discord_id = ?",
         interaction.user.id
       );
 
       const ingameName = row ? row.ingame_name : null;
+
+      if (!ingameName) {
+        console.warn(`Missing ingame_name for ${interaction.user.id}, skipping save.`);
+
+        await interaction.editReply(
+          "⚠️ I couldn’t save your weapons because your **in-game name is not registered**.\n" +
+          "Use **/register** first, then upload the screenshot again."
+        );
+
+        return;
+      }
+
 
       // -------------------------------------
       // SEND IMAGE TO A LOG CHANNEL
