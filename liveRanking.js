@@ -53,7 +53,6 @@ export async function startLiveRanking(client) {
     messages.find(m => m.author.id === client.user.id) ??
     await channel.send("⏳ Initializing live rankings...");
 
-    console.log("Using message ID:", msg.id);
 
   // -------------------------
   // Main loop
