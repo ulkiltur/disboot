@@ -110,9 +110,9 @@ async function fetchAllRoleRankings(db) {
 }
 
 function buildRankingMessage(role, rows, roleIndex) {
-  let text = `🏆 **Live Rankings — World Martial Masters**\n\n`;
-  text += `🎭 **Role:** ${role.label} (${roleIndex + 1}/${ROLE_ROTATION.length})\n`;
+  let text = `🏆 **Live Rankings — World Martial Masters**\n`;
   text += `⏱ Rotates every 10s · Full cycle ${ROLE_ROTATION.length * 10}s\n\n`;
+  text += `🎭 **Role:** ${role.label} (${roleIndex + 1}/${ROLE_ROTATION.length})\n\n`;
 
   if (!rows.length) {
     text += "❌ No data available\n";
@@ -127,7 +127,5 @@ function buildRankingMessage(role, rows, roleIndex) {
       text += `${medal} **${r.ingame_name}** — ⭐ ${Number(r.score).toFixed(3)}\n`;
     });
   }
-
-  text += `\n📅 Last update: <t:${Math.floor(Date.now() / 1000)}:R>`;
   return text;
 }
