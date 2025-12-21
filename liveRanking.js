@@ -1,7 +1,7 @@
 import sqlite from "sqlite3";
 import { open } from "sqlite";
 
-const CHANNEL_ID = "1447658567279706192";
+const CHANNEL_ID = "1452276743712014346";
 
 const ROLE_ROTATION = [
   { key: "DPS", label: "DPS" },
@@ -18,6 +18,7 @@ const ROTATE_EVERY_MS = 10_000;
 const REFRESH_DATA_MS = 80_000;
 
 export async function startLiveRanking(client) {
+    console.log("startLiveRanking called");
   // -------------------------
   // INTERNAL STATE
   // -------------------------
@@ -36,14 +37,23 @@ export async function startLiveRanking(client) {
   });
 
   const channel = await client.channels.fetch(CHANNEL_ID);
+  console.log("Channel fetched:", channel?.name, channel?.type);
+
+  if (!channel.isTextBased()) {
+    console.error("Channel is not text-based");
+    return;
+  }
 
   // -------------------------
   // Find or create message
   // -------------------------
   const messages = await channel.messages.fetch({ limit: 10 });
+  console.log("Messages fetched:", messages.size);
   rankingMessage =
     messages.find(m => m.author.id === client.user.id) ??
     await channel.send("⏳ Initializing live rankings...");
+
+    console.log("Using message ID:", msg.id);
 
   // -------------------------
   // Main loop
