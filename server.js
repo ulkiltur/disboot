@@ -13,6 +13,7 @@ import cron from "node-cron";
 import createEvent from './commands/createEvent.js';
 import set_reminder from './commands/buggerme.js';
 import cancel_reminders from './commands/unbuggerme.js';
+import { startLiveRanking } from "./liveRanking.js";
 
 const REMINDER_MINUTES_BEFORE = 30;
 const MY_USER_ID = "1416909595955302431";
@@ -284,6 +285,8 @@ client.once('ready', async () => {
   }
 
   console.log("✅ Members added to dm_consent");
+
+  startLiveRanking(client);
 });
 
 
