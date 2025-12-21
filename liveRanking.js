@@ -1,7 +1,7 @@
 import sqlite from "sqlite3";
 import { open } from "sqlite";
 
-const CHANNEL_ID = "1452276743712014346";
+const CHANNEL_ID = "1452289164878938286";
 
 const ROLE_ROTATION = [
   { key: "DPS", label: "DPS" },
@@ -131,12 +131,12 @@ async function fetchAllRoleRankings(db) {
 }
 
 function buildRankingMessage(role, rows, roleIndex) {
-  let text = `🏆 **Live Rankings — World Martial Masters**\n`;
+  let text = `🏆 **Live Rankings — Warden Martial Masters**\n`;
   text += `⏱ Rotates every 15s · Full cycle ${ROLE_ROTATION.length * 10}s\n\n`;
   text += `🎭 **Role:** ${role.label} (${roleIndex + 1}/${ROLE_ROTATION.length})\n\n`;
 
   if (!rows.length) {
-    text += "❌ No data available\n";
+    text += "❌ No players in this role\n";
   } else {
     rows.forEach((r, i) => {
       const medal =
