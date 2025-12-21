@@ -35,24 +35,35 @@ export default {
       "SELECT name FROM sqlite_master WHERE type='table' AND name='skills';"
     );
     
-    let skillRows = [];
-    if (tableExists) {
-      skillRows = await db.all(
+    let skillText = "";
+    if (!tableExists) {
+      skillText = "❌ No skills table found.";
+    } else {
+      // Fetch all skills for this user
+      const skillRows = await db.all(
         "SELECT role, weapon1, weapon2, score, created_at FROM skills WHERE discord_id = ?",
         discordId
       );
-    }
 
-    let skillText = "";
-    if (skillRows.length === 0) {
-      skillText = "❌ No skills found.";
-    } else {
-      skillText = skillRows.map(s => 
-        `🗡 **Role:** ${s.role}\n` +
-        `• Weapon 1: ${s.weapon1 ?? "❌"}\n` +
-        `• Weapon 2: ${s.weapon2 ?? "❌"}\n` +
-        `• Score: ${s.score ?? "❌"}\n`
-      ).join("\n\n");
+      if (skillRows.length === 0) {
+        skillText = "❌ No skills found.";
+      } else {
+        // Compute rank for each skill row
+        const skillsWithRank = await Promise.all(skillRows.map(async s => {
+          const rankRow = await db.get(
+            "SELECT COUNT(*) + 1 AS rank FROM skills WHERE role = ? AND score > ?",
+            s.role, s.score
+          );
+          return { ...s, rank: rankRow.rank };
+        }));
+
+        skillText = skillsWithRank.map(s => 
+          `🗡 **Role:** ${s.role} (Rank: #${s.rank})\n` +
+          `• Weapon 1: ${s.weapon1 ?? "❌"}\n` +
+          `• Weapon 2: ${s.weapon2 ?? "❌"}\n` +
+          `• Score: ${s.score ?? "❌"}\n`
+        ).join("\n\n");
+      }
     }
 
     return interaction.reply({
