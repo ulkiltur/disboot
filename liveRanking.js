@@ -14,6 +14,21 @@ const ROLE_ROTATION = [
   { key: "ALL", label: "All Roles" },
 ];
 
+const weaponIcons = {
+  "Nameless Sword": "🗡️",
+  "Strategic Sword": "⚔️",
+  "Ninefold Umbrella": "🌂",
+  "Panacea Fan": "💊",
+  "Inkwell Fan": "🖋️",
+  "Stormbreaker Spear": "⚡",
+  "Nameless Spear": "🪝",
+  "Heavenquaker Spear": "☄️",
+  "Soulshade Umbrella": "☂️",
+  "Infernal Twinblades": "🔥",
+  "Thundercry Blade": "🌩️",
+  "Mortal Rope Dart": "🪢",
+};
+
 const weaponIconsNormalized = {};
 for (const [name, icon] of Object.entries(weaponIcons)) {
   weaponIconsNormalized[normalizeWeapon(name)] = icon;
@@ -87,21 +102,6 @@ export async function startLiveRanking(client) {
     }
   }, ROTATE_EVERY_MS);
 }
-
-const weaponIcons = {
-  "Nameless Sword": "🗡️",
-  "Strategic Sword": "⚔️",
-  "Ninefold Umbrella": "🌂",
-  "Panacea Fan": "💊",
-  "Inkwell Fan": "🖋️",
-  "Stormbreaker Spear": "⚡",
-  "Nameless Spear": "🪝",
-  "Heavenquaker Spear": "☄️",
-  "Soulshade Umbrella": "☂️",
-  "Infernal Twinblades": "🔥",
-  "Thundercry Blade": "🌩️",
-  "Mortal Rope Dart": "🪢",
-};
 
 
 async function fetchAllRoleRankings(db) {
