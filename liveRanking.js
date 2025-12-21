@@ -83,6 +83,22 @@ export async function startLiveRanking(client) {
   }, ROTATE_EVERY_MS);
 }
 
+const weaponIcons = {
+  "Nameless Sword": "🗡️",
+  "Strategic Sword": "⚔️",
+  "Ninefold Umbrella": "🌂",
+  "Panacea Fan": "💊",
+  "Inkwell Fan": "🖋️",
+  "Stormbreaker Spear": "⚡",
+  "Nameless Spear": "🪝",
+  "Heavenquaker Spear": "☄️",
+  "Soulshade Umbrella": "☂️",
+  "Infernal Twinblades": "🔥",
+  "Thundercry Blade": "🌩️",
+  "Mortal Rope Dart": "🪢",
+};
+
+
 async function fetchAllRoleRankings(db) {
   const result = {};
 
@@ -124,7 +140,10 @@ function buildRankingMessage(role, rows, roleIndex) {
         i === 2 ? "🥉" :
         `#${i + 1}`;
 
-      text += `${medal} **${r.ingame_name}** — ⭐ ${Number(r.score).toFixed(3)}\n`;
+    const w1 = r.weapon1 ? (weaponIcons[r.weapon1] ?? r.weapon1) : "❌";
+    const w2 = r.weapon2 ? (weaponIcons[r.weapon2] ?? r.weapon2) : "❌";
+
+    text += `${medal} **${r.ingame_name}** — ⭐ ${Number(r.score).toFixed(3)} | ${w1} - ${w2}\n`;
     });
   }
   return text;
