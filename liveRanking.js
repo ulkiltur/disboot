@@ -14,8 +14,13 @@ const ROLE_ROTATION = [
   { key: "ALL", label: "All Roles" },
 ];
 
-const ROTATE_EVERY_MS = 10_000;
-const REFRESH_DATA_MS = 80_000;
+const weaponIconsNormalized = {};
+for (const [name, icon] of Object.entries(weaponIcons)) {
+  weaponIconsNormalized[normalizeWeapon(name)] = icon;
+}
+
+const ROTATE_EVERY_MS = 15_000;
+const REFRESH_DATA_MS = 120_000;
 
 export async function startLiveRanking(client) {
     console.log("startLiveRanking called");
@@ -127,7 +132,7 @@ async function fetchAllRoleRankings(db) {
 
 function buildRankingMessage(role, rows, roleIndex) {
   let text = `🏆 **Live Rankings — World Martial Masters**\n`;
-  text += `⏱ Rotates every 10s · Full cycle ${ROLE_ROTATION.length * 10}s\n\n`;
+  text += `⏱ Rotates every 15s · Full cycle ${ROLE_ROTATION.length * 10}s\n\n`;
   text += `🎭 **Role:** ${role.label} (${roleIndex + 1}/${ROLE_ROTATION.length})\n\n`;
 
   if (!rows.length) {
@@ -140,11 +145,20 @@ function buildRankingMessage(role, rows, roleIndex) {
         i === 2 ? "🥉" :
         `#${i + 1}`;
 
-    const w1 = r.weapon1 ? (weaponIcons[r.weapon1] ?? r.weapon1) : "❌";
-    const w2 = r.weapon2 ? (weaponIcons[r.weapon2] ?? r.weapon2) : "❌";
+    const w1 = r.weapon1
+    ? (weaponIconsNormalized[normalizeWeapon(r.weapon1)] ?? r.weapon1)
+    : "❌";
+
+    const w2 = r.weapon2
+    ? (weaponIconsNormalized[normalizeWeapon(r.weapon2)] ?? r.weapon2)
+    : "❌";
 
     text += `${medal} **${r.ingame_name}** — ⭐ ${Number(r.score).toFixed(3)} | ${w1} - ${w2}\n`;
     });
   }
   return text;
+}
+
+function normalizeWeapon(name) {
+  return name?.trim().toLowerCase() ?? "";
 }
