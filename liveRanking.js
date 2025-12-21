@@ -109,7 +109,7 @@ async function fetchAllRoleRankings(db) {
 
   for (const role of ROLE_ROTATION) {
     let query = `
-      SELECT ingame_name, score
+      SELECT ingame_name, score, weapon1, weapon2
       FROM skills
     `;
 
